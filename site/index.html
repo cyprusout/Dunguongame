@@ -27,6 +27,7 @@
 		var player = new Sprite('player.png');
 
 		var bullets = [];
+		var enemies = [];
 
 		document.on('keydown',e=>{
 			if(e.key == ' '){
@@ -43,15 +44,51 @@
 				super('bullet.png');
 				this.position = new Vector(x,y);
 				this.direction = d;
-				this.speed = 6;
-				this.addMovement(this.move);
+				this.speed = 7;
 			}
-			move(){
-				let pos = this.position.clone();
+			fly(){
+				let pos = this.pos;
 				pos.x += this.speed * Math.cos(this.dir*Math.PI/180);
 				pos.y += this.speed * Math.sin(this.dir*Math.PI/180);
 				this.position = pos;
+				if(pos.y > 1000 || pos.y < -50 || pos.x > 1500 || pos.x < -50){
+					bullets.splice(bullets.indexOf(this),1);
+				}
 			}
+		}
+
+		class Enemy extends Sprite{
+			constructor(x,y){
+				super('enemy.png');
+				this.speed = 1;
+				this.position = new Vector(x,y);
+				this.cooldown = 10;
+			}
+			attack(){
+				let x = this.pos.x;
+				let y = this.pos.y;
+				let d = Vector.getDir(x-player.pos.x,y-player.pos.y);
+				this.direction = d;
+				let pos = this.pos;
+				d += 30;
+				pos.x += this.speed * Math.cos(d*Math.PI/180);
+				pos.y += this.speed * Math.sin(d*Math.PI/180);
+				this.position = pos;
+				this.cooldown--;
+				d-= 30;
+				if(this.cooldown == 0){
+					this.cooldown = 30;
+					let b1 = new Bullet(pos.x,pos.y,d);
+					let b2 = new Bullet(pos.x,pos.y,d-35);
+					let b3 = new Bullet(pos.x,pos.y,d+35);
+					bullets.push(b1,b2,b3);
+				}
+			}
+		}
+
+		function spawnEnemy(){
+			let ne = new Enemy(random(50,canvas.width-50),50);
+			enemies.push(ne);
 		}
 
 		function inputHandle(){
@@ -79,15 +116,22 @@
 		}
 
 		let i = 0;
+		var max_enemies = 5;
 		function loop(){
 			setTimeout(loop,1000/30);
 			ctx.clearRect(-2,-2,canvas.width+2,canvas.height+2);
 			inputHandle();
 			player.draw();
-			if(i++ % 2 == 0){
+			if(i++ % 100 == 0 && enemies.length < max_enemies){
+				spawnEnemy();
+			}
+			if(i++ % 10 == 5){
 				shoot();
 			}
+			for(let b of bullets) b.fly();
 			for(let b of bullets) b.draw();
+			for(let e of enemies) e.attack();
+			for(let e of enemies) e.draw();
 		}
 
 		function shoot(){
