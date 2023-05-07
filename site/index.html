@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+	<link rel="icon" type="image/x-icon" href="icon.png">
+	<style>
+		canvas{
+			background-color:black;
+		}
+	</style>
+	<script src="helpers.js"></script>
+	<script src="sprite.js"></script>
+	<script src="input.js"></script>
+</head>
+<body>
+	<canvas width=800 height=600></canvas>
+	<script>
+		const canvas = obj('canvas');
+		const ctx = canvas.getContext('2d');
+		ctx.fillStyle = 'white';
+		ctx.font = '40px sans-serif';
+		ctx.fillText('Press Space to Start',50,50);
+		ctx.fill();
+
+		var player = new Sprite('player.png');
+
+		var bullets = [];
+
+		document.on('keydown',e=>{
+			if(e.key == ' '){
+				start();
+			}
+		});
+
+		keys.start();
+
+
+
+		class Bullet extends Sprite{
+			constructor(x,y,d){
+				super('bullet.png');
+				this.position = new Vector(x,y);
+				this.direction = d;
+				this.speed = 6;
+				this.addMovement(this.move);
+			}
+			move(){
+				let pos = this.position.clone();
+				pos.x += this.speed * Math.cos(this.dir*Math.PI/180);
+				pos.y += this.speed * Math.sin(this.dir*Math.PI/180);
+				this.position = pos;
+			}
+		}
+
+		function inputHandle(){
+			let speed = 8;
+			let pos = player.pos;
+			if(keys.down('w')){
+				pos.y -= speed;
+			}
+			if(keys.down('s')){
+				pos.y += speed;
+			}
+			if(keys.down('a')){
+				pos.x -= speed;
+			}
+			if(keys.down('d')){
+				pos.x += speed;
+			}
+			player.slideTo(pos.x,pos.y);
+		}
+
+		function start(){
+			canvas.requestFullscreen();
+			player.position = new Vector(100,100);
+			loop();
+		}
+
+		let i = 0;
+		function loop(){
+			setTimeout(loop,1000/30);
+			ctx.clearRect(-2,-2,canvas.width+2,canvas.height+2);
+			inputHandle();
+			player.draw();
+			if(i++ % 2 == 0){
+				shoot();
+			}
+			for(let b of bullets) b.draw();
+		}
+
+		function shoot(){
+			let x = random(0,canvas.width);
+			let y = 0;
+			let d = Vector.getDir(x-player.pos.x,y-player.pos.y);
+			// let d = 90;
+			let nb = new Bullet(x,y,d);
+			bullets.push(nb);
+		}
+
+	</script>
+</body>
+</html>
