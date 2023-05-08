@@ -36,7 +36,7 @@
 		});
 
 		keys.start();
-
+		mouse.start(canvas);
 
 
 		class Bullet extends Sprite{
@@ -63,6 +63,7 @@
 				this.speed = 1;
 				this.position = new Vector(x,y);
 				this.cooldown = 10;
+				this.md = 80 * ((Math.random() > .5) ? -1 : 1);
 			}
 			attack(){
 				let x = this.pos.x;
@@ -70,12 +71,12 @@
 				let d = Vector.getDir(x-player.pos.x,y-player.pos.y);
 				this.direction = d;
 				let pos = this.pos;
-				d += 30;
+				d += this.md;
 				pos.x += this.speed * Math.cos(d*Math.PI/180);
 				pos.y += this.speed * Math.sin(d*Math.PI/180);
 				this.position = pos;
 				this.cooldown--;
-				d-= 30;
+				d -= this.md;
 				if(this.cooldown == 0){
 					this.cooldown = 30;
 					let b1 = new Bullet(pos.x,pos.y,d);
@@ -102,27 +103,78 @@
 			}
 			if(keys.down('a')){
 				pos.x -= speed;
+				player.transformX = -1;
 			}
 			if(keys.down('d')){
 				pos.x += speed;
+				player.transformX = 1;
+			}
+			if(keys.down('e')){
+				keys.keys['e'] = false;
+				nWeapon();
 			}
 			player.slideTo(pos.x,pos.y);
+			weapon.direction = Vector.getDir(pos.x-mouse.pos.x,pos.y-mouse.pos.y);
+			weapon.position = Vector.getPointIn(weapon.dir * Math.PI / 180,weapon_dist,pos.x,pos.y);
 		}
 
+		function useSpear(){
+			weapon = new Sprite('spear/0.png');
+			weapon.addAnimation('spear/stab.anims');
+			weapon.scale = new Vector(1,.3);
+			weapon_action = 'stab';
+			weapon_dist = 25;
+		}
+		function useMace(){
+			weapon = new Sprite('mace/0.png');
+			weapon.addAnimation('mace/mace.anims');
+			weapon_action = 'swing';
+			weapon_dist = 20;
+			weapon.transformX = -1;
+		}
+		function useLongSword(){
+			weapon = new Sprite('longsword/0.png');
+			weapon.addAnimation('longsword/longsword.anims');
+			weapon_action = 'swing';
+			weapon_dist = 40;
+			weapon.transformX = -1;
+		}
+		function useKnives(){
+			weapon = new Sprite('knives/0.png');
+			weapon.addAnimation('knives/knife.anims');
+			weapon_action = 'stab';
+			weapon_dist = 15;
+		}
+
+		var equips = [useSpear,useMace,useLongSword,useKnives];
+		var weapon_ix = 0;
+		function nWeapon(){
+			weapon_ix = (weapon_ix+1) % equips.length;
+			equips[weapon_ix]();
+		}
+
+		var weapon;
+		var weapon_action = '';
+		var weapon_dist = 0;
+
+		useSpear();
+
 		function start(){
-			canvas.requestFullscreen();
+			// canvas.requestFullscreen();
 			player.position = new Vector(100,100);
 			loop();
 		}
 
+		Hitbox.show = false;
+
 		let i = 0;
-		var max_enemies = 5;
+		var max_enemies = 3;
 		function loop(){
 			setTimeout(loop,1000/30);
 			ctx.clearRect(-2,-2,canvas.width+2,canvas.height+2);
 			inputHandle();
 			player.draw();
-			if(i++ % 100 == 0 && enemies.length < max_enemies){
+			if(i++ % 1000 == 0 && enemies.length < max_enemies){
 				spawnEnemy();
 			}
 			if(i++ % 10 == 5){
@@ -132,13 +184,17 @@
 			for(let b of bullets) b.draw();
 			for(let e of enemies) e.attack();
 			for(let e of enemies) e.draw();
+			weapon.draw();
+			if(mouse.down){
+				weapon.animation.play(weapon_action);
+			}
 		}
 
 		function shoot(){
 			let x = random(0,canvas.width);
 			let y = 0;
-			let d = Vector.getDir(x-player.pos.x,y-player.pos.y);
-			// let d = 90;
+			// let d = Vector.getDir(x-player.pos.x,y-player.pos.y);
+			let d = 90;
 			let nb = new Bullet(x,y,d);
 			bullets.push(nb);
 		}
