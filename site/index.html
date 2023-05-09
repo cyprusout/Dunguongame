@@ -24,7 +24,7 @@
 		ctx.fillText('Press Space to Start',50,50);
 		ctx.fill();
 
-		var player = new Sprite('player.png');
+		var player = new Sprite('Player/0.png');
 
 		var bullets = [];
 		var enemies = [];
@@ -169,7 +169,7 @@
 
 		Hitbox.show = false;
 
-		map.position = new Vector(0,0);
+		map.position = new Vector(canvas.width/2,canvas.height/2);
 
 		let i = 0;
 		var max_enemies = 3;
