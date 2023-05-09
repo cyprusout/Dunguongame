@@ -162,7 +162,7 @@
 		useSpear();
 
 		function start(){
-			// canvas.requestFullscreen();
+			canvas.requestFullscreen();
 			player.position = new Vector(100,100);
 			loop();
 		}
@@ -177,8 +177,8 @@
 			setTimeout(loop,1000/30);
 			ctx.clearRect(-2,-2,canvas.width+2,canvas.height+2);
 			inputHandle();
-			player.draw();
 			map.draw();
+			player.draw();
 			if(i++ % 1000 == 0 && enemies.length < max_enemies){
 				spawnEnemy();
 			}
