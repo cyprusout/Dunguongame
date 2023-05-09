@@ -1,4 +1,4 @@
 @echo off
 start http://localhost
-python server.py
+npx http-server site/ -p 80
 pause
