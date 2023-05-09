@@ -198,7 +198,11 @@
 			for(let e of enemies) e.draw();
 			weapon.draw();
 			if(mouse.down){
-				weapon.animation.play(weapon_action);
+				try{
+					weapon.animation.play(weapon_action);
+				} catch(e){
+					console.log('Animation didn\'t load fast enough');
+				}
 			}
 			ctx.restore();
 		}
