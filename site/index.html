@@ -38,6 +38,8 @@
 		keys.start();
 		mouse.start(canvas);
 
+		var map = new Sprite('sandmap.png');
+
 
 		class Bullet extends Sprite{
 			constructor(x,y,d){
@@ -167,6 +169,8 @@
 
 		Hitbox.show = false;
 
+		map.position = new Vector(0,0);
+
 		let i = 0;
 		var max_enemies = 3;
 		function loop(){
@@ -174,6 +178,7 @@
 			ctx.clearRect(-2,-2,canvas.width+2,canvas.height+2);
 			inputHandle();
 			player.draw();
+			map.draw();
 			if(i++ % 1000 == 0 && enemies.length < max_enemies){
 				spawnEnemy();
 			}
