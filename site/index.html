@@ -38,7 +38,7 @@
 		keys.start();
 		mouse.start(canvas);
 
-		var map = new Sprite('sandmap.png');
+		var background = new Sprite('sandmap.png');
 
 
 		class Bullet extends Sprite{
@@ -53,7 +53,7 @@
 				pos.x += this.speed * Math.cos(this.dir*Math.PI/180);
 				pos.y += this.speed * Math.sin(this.dir*Math.PI/180);
 				this.position = pos;
-				if(pos.y > 1000 || pos.y < -50 || pos.x > 1500 || pos.x < -50){
+				if(pos.y > background.h/2 || pos.y < -background.h/2 || pos.x < -background.w/2 || pos.x > background.w/2){
 					bullets.splice(bullets.indexOf(this),1);
 				}
 			}
@@ -116,7 +116,7 @@
 				nWeapon();
 			}
 			player.slideTo(pos.x,pos.y);
-			weapon.direction = Vector.getDir(pos.x-mouse.pos.x,pos.y-mouse.pos.y);
+			weapon.direction = Vector.getDir(canvas.width/2-mouse.pos.x,canvas.height/2-mouse.pos.y);
 			weapon.position = Vector.getPointIn(weapon.dir * Math.PI / 180,weapon_dist,pos.x,pos.y);
 		}
 
@@ -162,28 +162,35 @@
 		useSpear();
 
 		function start(){
+			if(!started){
+				started = true;
+				player.position = new Vector(canvas.width/2,canvas.height/2);
+				loop();
+			}				
 			canvas.requestFullscreen();
-			player.position = new Vector(100,100);
-			loop();
 		}
 
 		Hitbox.show = false;
 
-		map.position = new Vector(canvas.width/2,canvas.height/2);
+		map.position = new Vector(-canvas.width/2,-canvas.height/2);
 
 		let i = 0;
 		var max_enemies = 3;
+		var started = false;
+
 		function loop(){
-			setTimeout(loop,1000/30);
 			ctx.clearRect(-2,-2,canvas.width+2,canvas.height+2);
+			setTimeout(loop,1000/30);
+			ctx.save();
+			ctx.translate(-player.pos.x+canvas.width/2,-player.pos.y+canvas.height/2);
 			inputHandle();
-			map.draw();
+			background.draw();
 			player.draw();
 			if(i++ % 1000 == 0 && enemies.length < max_enemies){
 				spawnEnemy();
 			}
 			if(i++ % 10 == 5){
-				shoot();
+				// shoot();
 			}
 			for(let b of bullets) b.fly();
 			for(let b of bullets) b.draw();
@@ -193,6 +200,7 @@
 			if(mouse.down){
 				weapon.animation.play(weapon_action);
 			}
+			ctx.restore();
 		}
 
 		function shoot(){
