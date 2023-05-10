@@ -121,7 +121,8 @@
 			{ix:1,name:'FireFly',path:'enemies/fireshooter.png'},
 			{ix:2,name:'WaterBlob',path:'enemies/waterblob/0.png'},
 			{ix:3,name:'Tree',path:'levelitems/tree.png'},
-			{ix:4,name:'Door',path:'levelitems/door/0.png',p:1},
+			{ ix: 4, name: 'Door', path: 'levelitems/door/0.png', p: 1 },
+            { ix: 5, name: 'LaserBull', path: 'enemies/LaserBull.png' },
 		];
 
 		function setupTools(){
@@ -239,7 +240,8 @@
 				this.cooldown--;
 				if(this.cooldown == 0){
 					this.cooldown = 300;
-					for(let i=0;i<360;i+=360/8){
+                    var bulletcount = random(4, 10)
+					for (let i = 0; i < 360; i += 360 / bulletcount){
 						let nb = new Bullet(pos.x,pos.y,i,'enemies/waterblob/waterbullet.png');
 						bullets.push(nb);
 					}
@@ -288,6 +290,57 @@
 				this.nextRoom = d[1];
 			}
 		}
+		class LaserBull extends Sprite{
+            constructor(x, y) {
+                super('enemies/LaserBull.png');
+                this.speed = 2;
+                this.position = new Vector(x, y);
+                this.cooldown = 30;
+                this.maxHealth = 30;
+				this.md = 60 * ((Math.random() > .5) ? -1 : 1);
+				this.mode = 0;
+                enemies.push(this);
+            }
+            attack() {
+                let x = this.pos.x;
+                let y = this.pos.y;
+                let d = Vector.getDir(x - player.pos.x, y - player.pos.y);
+                this.direction = d;
+				let pos = this.pos.clone();
+                d += this.md;
+                pos.x += this.speed * Math.cos(d * Math.PI / 180);
+                pos.y += this.speed * Math.sin(d * Math.PI / 180);
+                this.position = pos;
+                if (this.touches(background) || this.isTouchingLines()) {
+                    this.md *= -1;
+                }
+                this.cooldown--;
+				d -= this.md;
+				//red laser (straight)
+				if (this.cooldown == 0) {
+					this.cooldown = 30;
+					if (this.mode == 0) {
+						let b1 = new Bullet(pos.x, pos.y, d, 'enemies/LaserRed.png');
+                        let b2 = new Bullet(pos.x, pos.y, d, 'enemies/LaserRed.png');
+						b1.speed = 4;
+						b2.speed = -1;
+						this.mode = 1;
+					bullets.push(b1, b2);
+					} else {
+						let b1 = new Bullet(pos.x, pos.y, d + 15, 'enemies/LaserRed.png');
+						let b2 = new Bullet(pos.x, pos.y, d - 15, 'enemies/LaserRed.png');
+                        let b3 = new Bullet(pos.x, pos.y, d + 15, 'enemies/LaserRed.png');
+                        let b4 = new Bullet(pos.x, pos.y, d - 15, 'enemies/LaserRed.png');
+                        b1.speed = 4;
+						b2.speed = 4;
+                        b3.speed = -1;
+                        b4.speed = -1;
+						this.mode = 0;
+                        bullets.push(b1, b2, b3, b4);
+						}
+                }
+            }
+        }
 
 		Sprite.prototype.health = 40;
 		Sprite.prototype.healthBar = new Bar(0,0,50,10);
