@@ -50,7 +50,7 @@
 		ctx.fill();
 
 		//////////////////////////////////////////////////
-		var EDITOR = location.href.includes('?');
+		var EDITOR = location.href.includes('editor');
 		//////////////////////////////////////////////////
 
 		var sel_sprite=null;
@@ -358,7 +358,8 @@
 
 		function start(){
 			if(!started){
-				loadLevel('level0');
+				let lv_name = location.href.split('level=')[1];
+				loadLevel(lv_name);
 				if(EDITOR){
 					setupTools();
 				}
