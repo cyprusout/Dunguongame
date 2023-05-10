@@ -42,11 +42,11 @@
 
 
 		class Bullet extends Sprite{
-			constructor(x,y,d){
-				super('bullet.png');
+			constructor(x,y,d,path='bullet.png'){
+				super(path);
 				this.position = new Vector(x,y);
 				this.direction = d;
-				this.speed = 7;
+				this.speed = 3.5;
 			}
 			fly(){
 				let pos = this.pos;
@@ -59,10 +59,10 @@
 			}
 		}
 
-		class Enemy extends Sprite{
+		class Tri1 extends Sprite{
 			constructor(x,y){
 				super('enemy.png');
-				this.speed = 1;
+				this.speed = .5;
 				this.position = new Vector(x,y);
 				this.cooldown = 10;
 				this.md = 80 * ((Math.random() > .5) ? -1 : 1);
@@ -80,7 +80,7 @@
 				this.cooldown--;
 				d -= this.md;
 				if(this.cooldown == 0){
-					this.cooldown = 30;
+					this.cooldown = 60;
 					let b1 = new Bullet(pos.x,pos.y,d);
 					let b2 = new Bullet(pos.x,pos.y,d-35);
 					let b3 = new Bullet(pos.x,pos.y,d+35);
@@ -89,13 +89,57 @@
 			}
 		}
 
+		class FireFly extends Sprite{
+			constructor(x,y){
+				super('fireshooter.png');
+				this.speed = .5;
+				this.position = new Vector(x,y);
+				this.cooldown1 = 2;
+				this.cooldown2 = 200;
+				this.md = 80 * ((Math.random() > .5) ? -1 : 1);
+			}
+			attack(){
+				let x = this.pos.x;
+				let y = this.pos.y;
+				let d = Vector.getDir(x-player.pos.x,y-player.pos.y);
+				this.direction = d;
+				let pos = this.pos;
+				d += this.md;
+				pos.x += this.speed * Math.cos(d*Math.PI/180);
+				pos.y += this.speed * Math.sin(d*Math.PI/180);
+				this.position = pos;
+				this.cooldown1--;
+				this.cooldown2--;
+				d -= this.md;
+				if(this.cooldown1 == 0 && this.cooldown2 > 0){
+					this.cooldown1 = 1;
+					let b1 = new Bullet(pos.x,pos.y,d+random(-10,10),'fireball.png');
+					b1.speed = 8;
+					bullets.push(b1);
+				}
+				if(this.cooldown2 < -300){
+					this.cooldown2 = random(150,300);
+					this.cooldown1 = 1;
+				}
+			}
+		}
+
+		let r_c = 0;
 		function spawnEnemy(){
-			let ne = new Enemy(random(50,canvas.width-50),50);
+			let ne;
+			// let r = random(1,2);
+			let r = 1+(r_c++)%2;
+			if(r==1){
+				ne = new Tri1(random(-background.w/2,background.w/2),random(-background.h/2,background.h/2));
+			} else if(r==2){
+				// ne = new FireFly(random(-background.w/2,background.w/2),random(-background.h/2,background.h/2));
+				ne = new FireFly(player.pos.x,player.pos.y+100);
+			}
 			enemies.push(ne);
 		}
 
 		function inputHandle(){
-			let speed = 8;
+			let speed = 4;
 			let pos = player.pos;
 			if(keys.down('w')){
 				pos.y -= speed;
@@ -164,7 +208,7 @@
 		function start(){
 			if(!started){
 				started = true;
-				player.position = new Vector(canvas.width/2,canvas.height/2);
+				player.position = new Vector(0,0);
 				loop();
 			}				
 			canvas.requestFullscreen();
@@ -180,7 +224,7 @@
 
 		function loop(){
 			ctx.clearRect(-2,-2,canvas.width+2,canvas.height+2);
-			setTimeout(loop,1000/30);
+			setTimeout(loop,1000/60);
 			ctx.save();
 			ctx.translate(-player.pos.x+canvas.width/2,-player.pos.y+canvas.height/2);
 			inputHandle();
@@ -202,7 +246,7 @@
 					weapon.animation.play(weapon_action);
 				} catch(e){
 					console.log('Animation didn\'t load fast enough');
-				}
+				} 
 			}
 			ctx.restore();
 		}
