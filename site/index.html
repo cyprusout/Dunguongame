@@ -118,6 +118,7 @@
 			{ix:1,name:'FireFly',path:'enemies/fireshooter.png'},
 			{ix:2,name:'WaterBlob',path:'enemies/waterblob/0.png'},
 			{ix:3,name:'Tree',path:'levelitems/tree.png'},
+			{ix:4,name:'Door',path:'levelitems/door/0.png',p:1},
 		];
 
 		function setupTools(){
@@ -247,6 +248,41 @@
 				sprites.push(this);
 			}
 		}
+		class Door extends Sprite{
+			constructor(x,y){
+				super('levelitems/door/0.png');
+				this.addAnimation('levelitems/door/door.anims').then(e=>{
+					this.animation.play(this.activated?'open':'closed',true);
+				});
+				this.position = new Vector(x,y);
+				this.nextRoom = 'level0';
+				this.activated = false;
+				this.addMovement(this.check);
+				sprites.push(this);
+			}
+			activate(){
+				this.activated = true;
+				this.animation.play('open',true);
+			}
+			check(){
+				if(this.activated){
+					if(this.touches(player)){
+						loadLevel(this.nextRoom);
+					}
+				} else {
+					if(enemies.length == 0){
+						setTimeout(()=>{
+							this.activate();
+						},500);
+					}
+				}
+			}
+			loadSpecCode(spec){
+				let d = spec.split(',');
+				this.activated = d[0]=='1';
+				this.nextRoom = d[1];
+			}
+		}
 
 		Sprite.prototype.health = 40;
 		Sprite.prototype.healthBar = new Bar(0,0,50,10);
@@ -272,6 +308,9 @@
 				setTimeout(()=>{
 					let ns = eval(`new ${classes[sprite.i]}`);
 					ns.position = new Vector(sprite.x,sprite.y);
+					if(sprite.spec){
+						ns.loadSpecCode(sprite.spec);
+					}
 				},w*1000);
 			}
 		}
@@ -282,11 +321,20 @@
 				ne.position = new Vector(mouse.pos.x-canvas.width/2+player.pos.x,mouse.pos.y-canvas.height/2+player.pos.y);
 				sprites.push(ne);
 				mouse.down = false;
+				var spec = '';
 				var w = 0;
 				if(obj('#time_delay').checked){
 					w = prompt('Enter delay (in seconds) before this item spawns');
 				}
-				level_data.spts.push({i:sel_sprite.ix,x:ne.pos.x,y:ne.pos.y,w});
+				var result = {i:sel_sprite.ix,x:ne.pos.x,y:ne.pos.y,w};
+				if(sel_sprite.p == 1){
+					let a = prompt('Is Active (1/0)');
+					let b = prompt('Where does this door lead to (enter level name)')
+					if(!a) a='0';
+					if(!b) b='level0';
+					result.spec = a+','+b;
+				}
+				level_data.spts.push(result);
 			}
 			if(mouse.down){
 				if(DRAW_MODE==1){
@@ -331,13 +379,7 @@
 				keys.keys['q'] = true;
 			});
 			if(keys.down('q')){
-				if(!level_data.lines) level_data.lines = [];
-				for(let l of lines){
-					let p1 = l.getPosA();
-					let p2 = l.getPosB();
-					level_data.lines.push({x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y});
-				}
-
+				dataExtraction();
 				keys.keys['q'] = false;
 				download(`${level_data.map}.json`,JSON.stringify(level_data));
 			}
@@ -348,6 +390,14 @@
 			});
 		}
 
+		function dataExtraction(){
+			if(!level_data.lines) level_data.lines = [];
+			for(let l of lines){
+				let p1 = l.getPosA();
+				let p2 = l.getPosB();
+				level_data.lines.push({x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y});
+			}
+		}
 
 		function inputHandle(){
 			let speed = 4;
