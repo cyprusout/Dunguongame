@@ -371,6 +371,7 @@
 			let req = await fetch(`levels/${level_name}.json`);
 			level_data = await req.json();
 			player.position = new Vector(level_data.sx,level_data.sy);
+			loadMap(level_data.map);
 			if(!EDITOR) spawnSprites(level_data.spts);
 			started = true;
 			loop();
