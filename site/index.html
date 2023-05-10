@@ -114,9 +114,10 @@
 		}
 
 		var imgs = [
-			{ix:0,name:'Tri1',path:'bushman.png'},
-			{ix:1,name:'FireFly',path:'fireshooter.png'},
-			{ix:2,name:'WaterBlob',path:'waterblob/0.png'},
+			{ix:0,name:'Tri1',path:'enemies/bushman.png'},
+			{ix:1,name:'FireFly',path:'enemies/fireshooter.png'},
+			{ix:2,name:'WaterBlob',path:'enemies/waterblob/0.png'},
+			{ix:3,name:'Tree',path:'levelitems/tree.png'},
 		];
 
 		function setupTools(){
@@ -239,6 +240,13 @@
 				}
 			}
 		}
+		class Tree extends Sprite{
+			constructor(x,y){
+				super('levelitems/tree.png');
+				this.position = new Vector(x,y);
+				sprites.push(this);
+			}
+		}
 
 		Sprite.prototype.health = 40;
 		Sprite.prototype.healthBar = new Bar(0,0,50,10);
@@ -256,7 +264,7 @@
 		}
 
 
-		var classes = ['Tri1','FireFly','WaterBlob'];
+		var classes = imgs.map(e=>e.name);
 
 		function spawnSprites(sprts){
 			for(let sprite of sprts){
@@ -310,6 +318,8 @@
 					loadMap(nm);
 					level_data.map = nm;
 					sprites = [];
+					lines = [];
+					level_data.lines = [];
 					level_data.spts = [];
 				}
 			}
@@ -329,7 +339,7 @@
 				}
 
 				keys.keys['q'] = false;
-				download('level0.json',JSON.stringify(level_data));
+				download(`${level_data.map}.json`,JSON.stringify(level_data));
 			}
 			obj('#draw_line').on('click',e=>{
 				if(sel_sprite) sel_sprite.el.classList.remove('selected');
@@ -470,7 +480,7 @@
 					setupTools();
 				}
 			}
-			if(!FULLSCREEN) canvas.requestFullscreen();
+			if(!FULLSCREEN && !EDITOR) canvas.requestFullscreen();
 		}
 
 		async function loadLevel(level_name='level0'){
