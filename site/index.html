@@ -9,6 +9,19 @@
 		canvas{
 			background-color:black;
 		}
+		game{
+			display: flex;
+		}
+		div > img{
+			box-sizing: border-box;
+			border: 0;
+		}
+		.selected{
+			border: 2px solid red;
+		}
+		#edit{
+			visibility: hidden;
+		}
 	</style>
 	<script src="helpers.js"></script>
 	<script src="sprite.js"></script>
@@ -16,7 +29,18 @@
 	<script src="audio.js"></script>
 </head>
 <body>
-	<canvas width=1200 height=800></canvas>
+	<game>
+		<canvas width=1200 height=800></canvas>
+		<div id=edit>
+			<button id=set_map>Choose Map</button>
+			<button id=spawn_point>Set Spawn Point</button>
+			<button id=draw_line>Draw Collision Line</button>
+			<button id=draw_circle>Draw Collision Circle</button>
+			<button id=save>Download Level</button>
+			<input title="Sprite Spawn Delay" id=time_delay type=checkbox>
+			<br>
+		</div>
+	</game>
 	<script>
 		const canvas = obj('canvas');
 		const ctx = canvas.getContext('2d');
@@ -25,10 +49,18 @@
 		ctx.fillText('Press Space to Start',50,50);
 		ctx.fill();
 
+		//////////////////////////////////////////////////
+		var EDITOR = location.href.includes('?');
+		//////////////////////////////////////////////////
+
+		var sel_sprite=null;
+
 		var player = new Sprite('Player/0.png');
 
 		var bullets = [];
 		var enemies = [];
+		var sprites = [];
+		var GAME = 0;
 
 		document.on('keydown',e=>{
 			if(e.key == ' '){
@@ -39,8 +71,14 @@
 		keys.start();
 		mouse.start(canvas);
 
-		var background = new Sprite('sandmap.png');
+		var background;
 
+		function loadMap(name='sandmap'){
+			background = new Sprite(name+'.png');
+			background.position = new Vector(0,0);
+		}
+
+		loadMap();
 
 		class Bullet extends Sprite{
 			constructor(x,y,d,path='bullet.png'){
@@ -60,13 +98,36 @@
 			}
 		}
 
+		var imgs = [
+			{ix:0,name:'Tri1',path:'bushman.png'},
+			{ix:1,name:'FireFly',path:'fireshooter.png'},
+			{ix:2,name:'WaterBlob',path:'waterblob/0.png'},
+		];
+
+		function setupTools(){
+			show(obj('#edit'));
+			for(let sprite of imgs){
+				let i = new Image;
+				i.src = sprite.path;
+				i.width = 50;
+				obj('#edit').appendChild(i);
+				sprite.el = i;
+				i.on('click',e=>{
+					if(sel_sprite) sel_sprite.el.classList.remove('selected');
+					sel_sprite = sprite;
+					i.classList.add('selected');
+				})
+			}
+		}
+
 		class Tri1 extends Sprite{
 			constructor(x,y){
-				super('enemy.png');
+				super('bushman.png');
 				this.speed = .5;
 				this.position = new Vector(x,y);
 				this.cooldown = 60;
 				this.md = 80 * ((Math.random() > .5) ? -1 : 1);
+				enemies.push(this);
 			}
 			attack(){
 				let x = this.pos.x;
@@ -89,7 +150,6 @@
 				}
 			}
 		}
-
 		class FireFly extends Sprite{
 			constructor(x,y){
 				super('fireshooter.png');
@@ -98,6 +158,7 @@
 				this.cooldown1 = 2;
 				this.cooldown2 = -200;
 				this.md = 0 * ((Math.random() > .5) ? -1 : 1);
+				enemies.push(this);
 			}
 			attack(){
 				let x = this.pos.x;
@@ -126,7 +187,6 @@
 				}
 			}
 		}
-
 		class WaterBlob extends Sprite{
 			constructor(x,y){
 				super('waterblob/0.png');
@@ -136,7 +196,8 @@
 				this.md = 80 * ((Math.random() > .5) ? -1 : 1);
 				this.addAnimation('waterblob/waterblob.anims').then(()=>{
 					this.animation.play('idle',true);
-				})
+				});
+				enemies.push(this);
 			}
 			attack(){
 				let x = this.pos.x;
@@ -158,6 +219,9 @@
 			}
 		}
 
+
+		var classes = [Tri1,FireFly,WaterBlob];
+
 		let r_c = 0;
 		function spawnEnemy(){
 			let ne;
@@ -172,11 +236,51 @@
 			enemies.push(ne);
 		}
 
-		function spawnPassiveEnemies(){
-			let pss = [[-50,-50],[-50,50],[50,-50],[50,50]];
-			for(let ps of pss){
-				let ne = new WaterBlob(ps[0]-70,ps[1]-170);
-				enemies.push(ne);
+		function spawnSprites(sprts){
+			for(let sprite of sprts){
+				let w = +sprite.w;
+				setTimeout(()=>{
+					let ns = eval(`new ${classes[sprite.i]}`);
+					ns.position = new Vector(sprite.x,sprite.y);
+				},w*1000);
+			}
+		}
+
+		function EDITOR_CONTROLS(){
+			if(sel_sprite && mouse.down){
+				let ne = new Sprite(sel_sprite.path);
+				ne.position = new Vector(mouse.pos.x-canvas.width/2+player.pos.x,mouse.pos.y-canvas.height/2+player.pos.y);
+				sprites.push(ne);
+				mouse.down = false;
+				var w = 0;
+				if(obj('#time_delay').checked){
+					w = prompt('Enter delay (in seconds) before this item spawns');
+				}
+				level_data.spts.push({i:sel_sprite.ix,x:ne.pos.x,y:ne.pos.y,w});
+			}
+			obj('#set_map').on('click',e=>{
+				keys.keys['m'] = true;
+			});
+			if(keys.down('m')){
+				keys.keys['m'] = false;
+				let nm = prompt('Enter map Name');
+				if(nm){
+					loadMap(nm);
+					level_data.map = nm;
+					sprites = [];
+					level_data.spts = [];
+				}
+			}
+			obj('#spawn_point').on('click',e=>{
+				level_data.sx = player.pos.x;
+				level_data.sy = player.pos.y;
+			});
+			obj('#save').on('click',e=>{
+				keys.keys['q'] = true;
+			});
+			if(keys.down('q')){
+				keys.keys['q'] = false;
+				download('level0.json',JSON.stringify(level_data));
 			}
 		}
 
@@ -204,7 +308,12 @@
 			player.slideTo(pos.x,pos.y);
 			weapon.direction = Vector.getDir(canvas.width/2-mouse.pos.x,canvas.height/2-mouse.pos.y);
 			weapon.position = Vector.getPointIn(weapon.dir * Math.PI / 180,weapon_dist,pos.x,pos.y);
+			if(EDITOR){
+				EDITOR_CONTROLS();
+			}
 		}
+
+		var level_data = {spts:[],map:'sandmap',sx:0,sy:0};
 
 		function useSpear(){
 			weapon = new Sprite('spear/0.png');
@@ -234,7 +343,7 @@
 			weapon_dist = 15;
 		}
 
-		var equips = [useSpear,useMace,useLongSword,useKnives];
+		var equips = ['useSpear','useMace','useLongSword','useKnives'];
 		var weapon_ix = 0;
 		function nWeapon(){
 			weapon_ix = (weapon_ix+1) % equips.length;
@@ -249,42 +358,56 @@
 
 		function start(){
 			if(!started){
-				started = true;
-				player.position = new Vector(0,0);
-				loop();
-				spawnPassiveEnemies();
-			}				
-			canvas.requestFullscreen();
+				loadLevel('level0');
+				if(EDITOR){
+					setupTools();
+				}
+			}
+		}
+
+		async function loadLevel(level_name='level0'){
+			stopGame();
+			let req = await fetch(`levels/${level_name}.json`);
+			level_data = await req.json();
+			player.position = new Vector(level_data.sx,level_data.sy);
+			if(!EDITOR) spawnSprites(level_data.spts);
+			started = true;
+			loop();
+			if(!EDITOR) canvas.requestFullscreen();
+			if(EDITOR) level_data.spts = [];
 		}
 
 		Hitbox.show = false;
-
-		map.position = new Vector(-canvas.width/2,-canvas.height/2);
 
 		let i = 0;
 		var max_enemies = 6;
 		var started = false;
 
+		function stopGame(){
+			started = false;
+			if(typeof GAME == 'number') clearTimeout(GAME);
+		}
+
 		function loop(){
 			ctx.clearRect(-2,-2,canvas.width+2,canvas.height+2);
-			setTimeout(loop,1000/60);
+			GAME = setTimeout(loop,1000/60);
 			ctx.save();
 			ctx.translate(-player.pos.x+canvas.width/2,-player.pos.y+canvas.height/2);
 			inputHandle();
 			background.draw();
 			player.draw();
-			if(i++ % 1000 == 0 && enemies.length < max_enemies){
-				spawnEnemy();
+			if(i++ % 1000 == 0 && enemies.length < max_enemies && !EDITOR){
+				// spawnEnemy();
 			}
-			if(i++ % 10 == 5){
-				// shoot();
+			for(let s of sprites) s.draw();
+			if(!EDITOR){
+				for(let b of bullets) b.fly();
+				for(let b of bullets) b.draw();
+				for(let e of enemies) e.attack();
 			}
-			for(let b of bullets) b.fly();
-			for(let b of bullets) b.draw();
-			for(let e of enemies) e.attack();
 			for(let e of enemies) e.draw();
 			weapon.draw();
-			if(mouse.down){
+			if(mouse.down && !EDITOR){
 				try{
 					weapon.animation.play(weapon_action);
 				} catch(e){
