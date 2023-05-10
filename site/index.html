@@ -50,13 +50,12 @@
 		ctx.fillText('Press Space to Start',50,50);
 		ctx.fill();
 
-		//////////////////////////////////////////////////
 		var EDITOR = location.href.includes('editor');
-		//////////////////////////////////////////////////
 
 		var sel_sprite=null;
 
 		var player = new Sprite('Player/0.png');
+		player.addAnimation('Player/player.anims');
 		player.maxHealth = 30;
 		var DRAW_MODE = 0,o_pos = null;
 
@@ -78,7 +77,7 @@
 		var background;
 
 		function loadMap(name='sandmap'){
-			background = new Sprite(name+'.png');
+			background = new Sprite(`maprooms/${name}.png`);
 			background.position = new Vector(0,0);
 		}
 		function loadLines(lns=[]){
@@ -138,7 +137,7 @@
 
 		class Tri1 extends Sprite{
 			constructor(x,y){
-				super('bushman.png');
+				super('enemies/bushman.png');
 				this.speed = .5;
 				this.position = new Vector(x,y);
 				this.cooldown = 60;
@@ -163,16 +162,16 @@
 				d -= this.md;
 				if(this.cooldown == 0){
 					this.cooldown = 60;
-					let b1 = new Bullet(pos.x,pos.y,d);
-					let b2 = new Bullet(pos.x,pos.y,d-35);
-					let b3 = new Bullet(pos.x,pos.y,d+35);
+					let b1 = new Bullet(pos.x,pos.y,d,'enemies/thorn.png');
+					let b2 = new Bullet(pos.x,pos.y,d-35,'enemies/thorn.png');
+					let b3 = new Bullet(pos.x,pos.y,d+35,'enemies/thorn.png');
 					bullets.push(b1,b2,b3);
 				}
 			}
 		}
 		class FireFly extends Sprite{
 			constructor(x,y){
-				super('fireshooter.png');
+				super('enemies/fireshooter.png');
 				this.speed = 3;
 				this.position = new Vector(x,y);
 				this.cooldown1 = 2;
@@ -193,7 +192,7 @@
 				this.cooldown2--;
 				if(this.cooldown1 == 0 && this.cooldown2 > 0){
 					this.cooldown1 = 1;
-					let b1 = new Bullet(pos.x,pos.y,d+random(-10,10),'fireball.png');
+					let b1 = new Bullet(pos.x,pos.y,d+random(-10,10),'enemies/fireball.png');
 					// audio.play('creek.wav',true,1);
 					b1.speed = 15;
 					bullets.push(b1);
@@ -210,13 +209,13 @@
 		}
 		class WaterBlob extends Sprite{
 			constructor(x,y){
-				super('waterblob/0.png');
+				super('enemies/waterblob/0.png');
 				this.speed = .5;
 				this.position = new Vector(x,y);
 				this.cooldown = 60;
 				this.maxHealth = 40;
 				this.md = 80 * ((Math.random() > .5) ? -1 : 1);
-				this.addAnimation('waterblob/waterblob.anims').then(()=>{
+				this.addAnimation('enemies/waterblob/waterblob.anims').then(()=>{
 					this.animation.play('idle',true);
 				});
 				enemies.push(this);
@@ -234,7 +233,7 @@
 				if(this.cooldown == 0){
 					this.cooldown = 300;
 					for(let i=0;i<360;i+=360/8){
-						let nb = new Bullet(pos.x,pos.y,i,'waterblob/waterbullet.png');
+						let nb = new Bullet(pos.x,pos.y,i,'enemies/waterblob/waterbullet.png');
 						bullets.push(nb);
 					}
 				}
@@ -388,32 +387,32 @@
 		var level_data = {spts:[],map:'sandmap',sx:0,sy:0,lines:[]};
 
 		function useSpear(){
-			weapon = new Sprite('spear/0.png');
-			weapon.addAnimation('spear/stab.anims');
+			weapon = new Sprite('weapons/spear/0.png');
+			weapon.addAnimation('weapons/spear/stab.anims');
 			weapon.scale = new Vector(1,.3);
 			weapon.damage = 1;
 			weapon_action = 'stab';
 			weapon_dist = 25;
 		}
 		function useMace(){
-			weapon = new Sprite('mace/0.png');
-			weapon.addAnimation('mace/mace.anims');
+			weapon = new Sprite('weapons/mace/0.png');
+			weapon.addAnimation('weapons/mace/mace.anims');
 			weapon_action = 'swing';
 			weapon.damage = 3;
 			weapon_dist = 20;
 			weapon.transformX = -1;
 		}
 		function useLongSword(){
-			weapon = new Sprite('longsword/0.png');
-			weapon.addAnimation('longsword/longsword.anims');
+			weapon = new Sprite('weapons/longsword/0.png');
+			weapon.addAnimation('weapons/longsword/longsword.anims');
 			weapon_action = 'swing';
 			weapon.damage = 3;
 			weapon_dist = 40;
 			weapon.transformX = -1;
 		}
 		function useKnives(){
-			weapon = new Sprite('knives/0.png');
-			weapon.addAnimation('knives/knife.anims');
+			weapon = new Sprite('weapons/knives/0.png');
+			weapon.addAnimation('weapons/knives/knife.anims');
 			weapon_action = 'stab';
 			weapon.damage = 3;
 			weapon_dist = 15;
