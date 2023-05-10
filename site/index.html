@@ -308,6 +308,8 @@
 		var classes = imgs.map(e=>e.name);
 
 		function spawnSprites(sprts){
+			enemies = [];
+			sprites = [];
 			for(let sprite of sprts){
 				let w = +sprite.w;
 				setTimeout(()=>{
