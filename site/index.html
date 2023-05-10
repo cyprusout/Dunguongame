@@ -62,6 +62,7 @@
 		var bullets = [];
 		var enemies = [];
 		var sprites = [];
+		var my_bullets = [];
 		var lines = [];
 		var GAME = 0;
 
@@ -81,6 +82,7 @@
 			background.position = new Vector(0,0);
 		}
 		function loadLines(lns=[]){
+			lines = [];
 			for(let l of lns){
 				lines.push(new Line(l.x1,l.y1,l.x2,l.y2));
 			}
@@ -94,6 +96,7 @@
 				this.position = new Vector(x,y);
 				this.direction = d;
 				this.speed = 3.5;
+				this.parr = bullets;
 			}
 			fly(){
 				let pos = this.pos;
@@ -101,14 +104,14 @@
 				pos.y += this.speed * Math.sin(this.dir*Math.PI/180);
 				this.position = pos;
 				if(pos.y > background.h/2 || pos.y < -background.h/2 || pos.x < -background.w/2 || pos.x > background.w/2){
-					bullets.splice(bullets.indexOf(this),1);
+					this.parr.splice(this.parr.indexOf(this),1);
 				}
 				if(this.touches(player)){
-					bullets.splice(bullets.indexOf(this),1);
+					this.parr.splice(this.parr.indexOf(this),1);
 					player.health--;
 				}
 				if(this.isTouchingLines()){
-					bullets.splice(bullets.indexOf(this),1);
+					this.parr.splice(this.parr.indexOf(this),1);
 				}
 			}
 		}
@@ -136,6 +139,8 @@
 				})
 			}
 		}
+				this.nextRoom = 'level0';
+				this.activated = false;
 
 		class Tri1 extends Sprite{
 			constructor(x,y){
@@ -416,6 +421,11 @@
 				pos.x += speed;
 				player.transformX = 1;
 			}
+			if(keys.down('w') || keys.down('a') || keys.down('s') || keys.down('d')){
+				player.animation.play('walk');
+			} else {
+				player.animation.stop();
+			}
 			if(keys.down('e')){
 				keys.keys['e'] = false;
 				nWeapon();
@@ -477,35 +487,59 @@
 			weapon.damage = 3;
 			weapon_dist = 15;
 		}
+		function useSword(){
+			weapon = new Sprite('weapons/sword/0.png');
+			weapon.addAnimation('weapons/sword/sword.anims');
+			weapon_action = 'swing';
+			weapon.damage = 3;
+			weapon_dist = 20;
+			weapon.transformX = -1;
+		}
+		function useCrossbow(){
+			weapon = new Sprite('weapons/crossbow/0.png');
+			weapon.addAnimation('weapons/crossbow/crossbow.anims');
+			weapon.damage = 3;
+			weapon_dist = 20;
+			weapon.type = 'nod';
+			weapon.transformX = -1;
+		}
 
 
 		function attack(){
 			try{
-				weapon.animation.play(weapon_action).then(d=>{
-					if(!d) return;
-					for(let e of enemies){
-						if(weapon.touches(e)){
-							e.health -= weapon.damage;
-							if(e.health <= 0){
-								enemies.splice(enemies.indexOf(e),1);
-								let poof = new Sprite('poof/0.png');
-								poof.position = new Vector(e.pos.x,e.pos.y);
-								poof.addAnimation('poof/poof.anims').then(e=>{
-									poof.animation.play('poof').then(e=>{
-										sprites.splice(sprites.indexOf(poof),1);
+				if(weapon.type == 'nod'){
+					weapon.animation.play('load').then(d=>{
+						let arrow = new Bullet(weapons.pos.x,weapon.pos.y,weapon.dir,'weapons/arrow.png');
+						arrow.parr = 
+						weapon.animation.play('fire');
+					});
+				} else {
+					weapon.animation.play(weapon_action).then(d=>{
+						if(!d) return;
+						for(let e of enemies){
+							if(weapon.touches(e)){
+								e.health -= weapon.damage;
+								if(e.health <= 0){
+									enemies.splice(enemies.indexOf(e),1);
+									let poof = new Sprite('poof/0.png');
+									poof.position = new Vector(e.pos.x,e.pos.y);
+									poof.addAnimation('poof/poof.anims').then(e=>{
+										poof.animation.play('poof').then(e=>{
+											sprites.splice(sprites.indexOf(poof),1);
+										});
 									});
-								});
-								sprites.push(poof);
+									sprites.push(poof);
+								}
 							}
 						}
-					}
-				})
+					});
+				}
 			} catch(e){
 				console.log('Animation didn\'t load fast enough');
 			} 
 		}
 
-		var equips = [useSpear,useMace,useLongSword,useKnives];
+		var equips = [useSpear,useMace,useLongSword,useKnives,useSword,useCrossbow];
 		var weapon_ix = 0;
 
 		function nWeapon(){
