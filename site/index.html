@@ -58,10 +58,12 @@
 
 		var player = new Sprite('Player/0.png');
 		player.maxHealth = 30;
+		var DRAW_MODE = 0,o_pos = null;
 
 		var bullets = [];
 		var enemies = [];
 		var sprites = [];
+		var lines = [];
 		var GAME = 0;
 
 		document.on('keydown',e=>{
@@ -237,23 +239,17 @@
 			this.healthBar.pert = this.health / this.maxHealth;
 			this.healthBar.draw(this.pos.x,this.pos.y-this.h/2-5);
 		}
+		Sprite.prototype.isTouchingLines = function(){
+			for(let l of lines){
+				if(this.touches(l)){
+					return true;
+				}
+			}
+			return false;
+		}
 
 
 		var classes = ['Tri1','FireFly','WaterBlob'];
-
-		let r_c = 0;
-		function spawnEnemy(){
-			let ne;
-			// let r = random(1,2);
-			let r = 1+(r_c++)%2;
-			if(r==1){
-				ne = new Tri1(random(-background.w/2,background.w/2),random(-background.h/2,background.h/2));
-			} else if(r==2){
-				// ne = new FireFly(random(-background.w/2,background.w/2),random(-background.h/2,background.h/2));
-				ne = new FireFly(player.pos.x,player.pos.y+500);
-			}
-			enemies.push(ne);
-		}
 
 		function spawnSprites(sprts){
 			for(let sprite of sprts){
@@ -277,6 +273,26 @@
 				}
 				level_data.spts.push({i:sel_sprite.ix,x:ne.pos.x,y:ne.pos.y,w});
 			}
+			if(mouse.down){
+				if(DRAW_MODE==1){
+					if(!o_pos){
+						o_pos = new Vector(mouse.pos.x-canvas.width/2+player.pos.x,mouse.pos.y-canvas.height/2+player.pos.y);
+					} else {
+						ctx.beginPath();
+						ctx.moveTo(o_pos.x,o_pos.y);
+						ctx.lineTo(mouse.pos.x-canvas.width/2+player.pos.x,mouse.pos.y-canvas.height/2+player.pos.y);
+						ctx.stroke();
+					}
+				}
+			}
+			if(!mouse.down){
+				if(DRAW_MODE == 1){
+					if(o_pos){
+						lines.push(new Line(o_pos.x,o_pos.y,mouse.pos.x-canvas.width/2+player.pos.x,mouse.pos.y-canvas.height/2+player.pos.y));
+						o_pos = null;
+					}
+				}
+			}
 			obj('#set_map').on('click',e=>{
 				keys.keys['m'] = true;
 			});
@@ -298,10 +314,21 @@
 				keys.keys['q'] = true;
 			});
 			if(keys.down('q')){
+				for(let l of lines){
+					
+				}
+
 				keys.keys['q'] = false;
 				download('level0.json',JSON.stringify(level_data));
 			}
+			obj('#draw_line').on('click',e=>{
+				if(sel_sprite) sel_sprite.el.classList.remove('selected');
+				sel_sprite = null;
+				DRAW_MODE = 1;
+			});
 		}
+
+
 
 		function inputHandle(){
 			let speed = 4;
@@ -324,9 +351,19 @@
 				keys.keys['e'] = false;
 				nWeapon();
 			}
+
+			pos.x = Math.max(Math.min(pos.x,background.w/2),-background.w/2);
+			pos.y = Math.max(Math.min(pos.y,background.h/2),-background.h/2);
+			let op = player.pos.clone();
+
+			player.position = new Vector(pos.x,op.y);
+			if(player.isTouchingLines()) pos.x = op.x;
+
+
+			player.position = new Vector(op.x,pos.y);
+			if(player.isTouchingLines()) pos.y = op.y;
+
 			if(player.health > 0){
-				pos.x = Math.max(Math.min(pos.x,background.w/2),-background.w/2);
-				pos.y = Math.max(Math.min(pos.y,background.h/2),-background.h/2);
 				player.position = pos;
 				weapon.direction = Vector.getDir(canvas.width/2-mouse.pos.x,canvas.height/2-mouse.pos.y);
 				weapon.position = Vector.getPointIn(weapon.dir * Math.PI / 180,weapon_dist,pos.x,pos.y);
@@ -336,7 +373,7 @@
 			}
 		}
 
-		var level_data = {spts:[],map:'sandmap',sx:0,sy:0};
+		var level_data = {spts:[],map:'sandmap',sx:0,sy:0,lines:[]};
 
 		function useSpear(){
 			weapon = new Sprite('spear/0.png');
@@ -368,6 +405,33 @@
 			weapon_action = 'stab';
 			weapon.damage = 3;
 			weapon_dist = 15;
+		}
+
+
+		function attack(){
+			try{
+				weapon.animation.play(weapon_action).then(d=>{
+					if(!d) return;
+					for(let e of enemies){
+						if(weapon.touches(e)){
+							e.health -= weapon.damage;
+							if(e.health <= 0){
+								enemies.splice(enemies.indexOf(e),1);
+								let poof = new Sprite('poof/0.png');
+								poof.position = new Vector(e.pos.x,e.pos.y);
+								poof.addAnimation('poof/poof.anims').then(e=>{
+									poof.animation.play('poof').then(e=>{
+										sprites.splice(sprites.indexOf(poof),1);
+									});
+								});
+								sprites.push(poof);
+							}
+						}
+					}
+				})
+			} catch(e){
+				console.log('Animation didn\'t load fast enough');
+			} 
 		}
 
 		var equips = [useSpear,useMace,useLongSword,useKnives];
@@ -407,10 +471,8 @@
 			if(EDITOR) level_data.spts = [];
 		}
 
-		Hitbox.show = false;
+		Hitbox.show = true;
 
-		let i = 0;
-		var max_enemies = 6;
 		var started = false;
 
 		function stopGame(){
@@ -423,16 +485,13 @@
 			GAME = setTimeout(loop,1000/60);
 			ctx.save();
 			ctx.translate(-player.pos.x+canvas.width/2,-player.pos.y+canvas.height/2);
-			inputHandle();
 			background.draw();
+			inputHandle();
 			player.draw();
 			player.showHealth();
 			if(player.health <= 0){
 				player.health = 0;
 				player.direction = 90;
-			}
-			if(i++ % 1000 == 0 && enemies.length < max_enemies && !EDITOR){
-				// spawnEnemy();
 			}
 			for(let s of sprites) s.draw();
 			if(!EDITOR){
@@ -441,36 +500,19 @@
 					b.draw();
 				}
 			}
+			if(EDITOR){
+				for(let l of lines){
+					l.draw();
+				}
+			}
 			for(let e of enemies){
 				if(!EDITOR) e.attack();
 				e.draw();
 				e.showHealth();
 			}
 			weapon.draw();
-			if(mouse.down && !EDITOR){
-				try{
-					weapon.animation.play(weapon_action).then(d=>{
-						if(!d) return;
-						for(let e of enemies){
-							if(weapon.touches(e)){
-								e.health -= weapon.damage;
-								if(e.health <= 0){
-									enemies.splice(enemies.indexOf(e),1);
-									let poof = new Sprite('poof/0.png');
-									poof.position = new Vector(e.pos.x,e.pos.y);
-									poof.addAnimation('poof/poof.anims').then(e=>{
-										poof.animation.play('poof').then(e=>{
-											sprites.splice(sprites.indexOf(poof),1);
-										});
-									});
-									sprites.push(poof);
-								}
-							}
-						}
-					})
-				} catch(e){
-					console.log('Animation didn\'t load fast enough');
-				} 
+			if(mouse.down && !EDITOR && player.health > 0){
+				attack();
 			}
 			ctx.restore();
 		}

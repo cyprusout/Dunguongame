@@ -245,6 +245,12 @@ class Hitbox{
 					}
 				}
 			}
+		} else if(hitbox instanceof Line){
+			for(let l1 of this.lines){
+				if(l1.touches(hitbox)){
+					return true;
+				}
+			}
 		}
 		return false;
 	}
