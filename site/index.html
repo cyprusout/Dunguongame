@@ -81,6 +81,11 @@
 			background = new Sprite(name+'.png');
 			background.position = new Vector(0,0);
 		}
+		function loadLines(lns=[]){
+			for(let l of lns){
+				lines.push(new Line(l.x1,l.y1,l.x2,l.y2));
+			}
+		}
 
 		loadMap();
 
@@ -102,6 +107,9 @@
 				if(this.touches(player)){
 					bullets.splice(bullets.indexOf(this),1);
 					player.health--;
+				}
+				if(this.isTouchingLines()){
+					bullets.splice(bullets.indexOf(this),1);
 				}
 			}
 		}
@@ -148,7 +156,7 @@
 				pos.x += this.speed * Math.cos(d*Math.PI/180);
 				pos.y += this.speed * Math.sin(d*Math.PI/180);
 				this.position = pos;
-				if(this.touches(background)){
+				if(this.touches(background) || this.isTouchingLines()){
 					this.md *= -1;
 				}
 				this.cooldown--;
@@ -314,8 +322,11 @@
 				keys.keys['q'] = true;
 			});
 			if(keys.down('q')){
+				if(!level_data.lines) level_data.lines = [];
 				for(let l of lines){
-					
+					let p1 = l.getPosA();
+					let p2 = l.getPosB();
+					level_data.lines.push({x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y});
 				}
 
 				keys.keys['q'] = false;
@@ -327,7 +338,6 @@
 				DRAW_MODE = 1;
 			});
 		}
-
 
 
 		function inputHandle(){
@@ -367,6 +377,8 @@
 				player.position = pos;
 				weapon.direction = Vector.getDir(canvas.width/2-mouse.pos.x,canvas.height/2-mouse.pos.y);
 				weapon.position = Vector.getPointIn(weapon.dir * Math.PI / 180,weapon_dist,pos.x,pos.y);
+			} else {
+				player.position = op;
 			}
 			if(EDITOR){
 				EDITOR_CONTROLS();
@@ -436,9 +448,12 @@
 
 		var equips = [useSpear,useMace,useLongSword,useKnives];
 		var weapon_ix = 0;
+
 		function nWeapon(){
-			weapon_ix = (weapon_ix+1) % equips.length;
-			equips[weapon_ix]();
+			if(player.health >= 0){
+				weapon_ix = (weapon_ix+1) % equips.length;
+				equips[weapon_ix]();
+			}
 		}
 
 		var weapon;
@@ -456,22 +471,24 @@
 					setupTools();
 				}
 			}
+			if(!FULLSCREEN) canvas.requestFullscreen();
 		}
 
 		async function loadLevel(level_name='level0'){
 			stopGame();
 			let req = await fetch(`levels/${level_name}.json`);
 			level_data = await req.json();
-			player.position = new Vector(level_data.sx,level_data.sy);
 			loadMap(level_data.map);
 			if(!EDITOR) spawnSprites(level_data.spts);
+			loadLines(level_data.lines);
 			started = true;
 			loop();
-			if(!EDITOR) canvas.requestFullscreen();
 			if(EDITOR) level_data.spts = [];
+			player.position = new Vector(level_data.sx,level_data.sy);
+			if(!EDITOR) canvas.requestFullscreen();
 		}
 
-		Hitbox.show = true;
+		Hitbox.show = false;
 
 		var started = false;
 
@@ -500,7 +517,7 @@
 					b.draw();
 				}
 			}
-			if(EDITOR){
+			if(EDITOR || Hitbox.show){
 				for(let l of lines){
 					l.draw();
 				}
