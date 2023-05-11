@@ -302,8 +302,15 @@
 						let d = this.dir + 180;
 						let rx = player.pos.x / (background.w/2);
 						let ry = player.pos.y / (background.h/2);
-						rx *= -1;//Math.sin(Vector.rad(d));
-						ry *= -1;//Math.cos(Vector.rad(d));
+						if(Math.abs(player.pos.x) > Math.abs(player.pos.y)){
+							ry=0;
+							rx*=.9;
+						} else {
+							rx=0;
+							ry*=.9;
+						}
+						rx *= -1;
+						ry *= -1;
 						loadLevel(this.nextRoom,new Vector(rx,ry));
 					}
 				} else {
@@ -786,7 +793,7 @@
 			if(!FULLSCREEN && !EDITOR) canvas.requestFullscreen();
 		}
 
-		async function loadLevel(level_name='level0',v){
+		async function loadLevel(level_name='sandroomspawn',v){
 			stopGame();
 			let req = await fetch(`levels/${level_name}.json`);
 			level_data = await req.json();
