@@ -65,6 +65,7 @@
 		var my_bullets = [];
 		var lines = [];
 		var GAME = 0;
+		var INVENTORY = [],inv_cache=[];
 
 		document.on('keydown',e=>{
 			if(e.key == ' '){
@@ -456,6 +457,25 @@
 			}
 		}
 
+
+		var itemframe = new Image;
+		itemframe.src = 'itemframe.png';
+
+		INVENTORY.push({name:'hp',path:'potion/0.png'});
+
+		function drawInventory(){
+			for(let i=0;i<Math.max(INVENTORY.length,3);i++){
+				let x = i*(itemframe.width+5)+5;
+				let y = canvas.height-itemframe.height-5;
+				ctx.drawImage(itemframe,x,y,64,64);
+				if(INVENTORY[i]){
+					let it = new Image;
+					it.src = INVENTORY[i].path;
+					ctx.drawImage(it,x+itemframe.width/2-it.width/2,y+itemframe.height/2-it.height/2);
+				}
+			}
+		}
+
 		var level_data = {spts:[],map:'sandmap',sx:0,sy:0,lines:[]};
 
 		function useSpear(){
@@ -627,6 +647,7 @@
 				attack();
 			}
 			ctx.restore();
+			drawInventory();
 		}
 
 		function shoot(){
