@@ -294,7 +294,7 @@ class Sprite extends Hitbox{
 	#slide_x = 0;
 	#slide_y = 0;
 	#end_slide;
-	constructor(image_path){
+	constructor(image_path,ready_callback=()=>{}){
 		var once = false;
 		super(new Vector(-100,-100),1,1);
 		const THIS = this;
@@ -309,6 +309,7 @@ class Sprite extends Hitbox{
 			once = true;
 			THIS.width = THIS.element.width;
 			THIS.height = THIS.element.height;
+			ready_callback();
 		}
 		this.move = data => {};
 	}
