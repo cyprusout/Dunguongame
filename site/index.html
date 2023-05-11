@@ -292,7 +292,7 @@
 				if(!this.playerCheck){
 					if(!this.touches(player)){
 						this.playerCheck = true;
-						this.animation.play((this.activated)?'open':'closed',true);
+						try{this.animation.play((this.activated)?'open':'closed',true);}catch(e){}
 					} else {
 						return;
 					}
@@ -302,8 +302,8 @@
 						let d = this.dir + 180;
 						let rx = player.pos.x / (background.w/2);
 						let ry = player.pos.y / (background.h/2);
-						rx *= Math.sin(Vector.rad(d));
-						ry *= Math.cos(Vector.rad(d));
+						rx *= -1;//Math.sin(Vector.rad(d));
+						ry *= -1;//Math.cos(Vector.rad(d));
 						loadLevel(this.nextRoom,new Vector(rx,ry));
 					}
 				} else {
