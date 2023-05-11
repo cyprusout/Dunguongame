@@ -128,7 +128,7 @@
 			{ix:1,name:'FireFly',path:'enemies/fireshooter.png'},
 			{ix:2,name:'WaterBlob',path:'enemies/waterblob/0.png'},
 			{ix:3,name:'Tree',path:'levelitems/tree.png'},
-			{ix:4,name:'Door',path:'levelitems/door/0.png',p:1 },
+			{ix:4,name:'Door',path:'levelitems/door/0.png',p:1},
             {ix:5,name:'LaserBull',path:'enemies/LaserBull.png'},
             {ix:6,name:'Spike',path:'enemies/spikes.png'},
             {ix:7,name:'SandWorm',path:'enemies/sandworm/00.png'},
@@ -481,6 +481,8 @@
 		function spawnSprites(sprts,EDITOR=false){
 			enemies = [];
 			sprites = [];
+			bullets = [];
+			my_bullets = [];
 			for(let sprite of sprts){
 				let w = +sprite.w;
 				setTimeout(()=>{
@@ -807,7 +809,7 @@
 			} else {
 				player.position = new Vector(level_data.sx,level_data.sy);
 			}
-			if(!EDITOR && !FULLSCREEN) canvas.requestFullscreen();
+			// if(!EDITOR && !FULLSCREEN) canvas.requestFullscreen();
 		}
 
 		Hitbox.show = false;
@@ -845,7 +847,7 @@
 				}
 			}
 			for(let e of enemies){
-				if(!EDITOR){
+				if(!EDITOR && player.health > 0){
 					e.attack();
 					e.showHealth();
 				}
