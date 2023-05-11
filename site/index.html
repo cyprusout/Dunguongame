@@ -151,6 +151,7 @@
 				this.position = new Vector(x,y);
 				this.cooldown = 60;
 				this.maxHealth = 40;
+                this.health = this.maxHealth;
 				this.md = 80 * ((Math.random() > .5) ? -1 : 1);
 				enemies.push(this);
 			}
@@ -181,11 +182,12 @@
 		class FireFly extends Sprite{
 			constructor(x,y){
 				super('enemies/fireshooter.png');
-				this.speed = 3;
+				this.speed = 4;
 				this.position = new Vector(x,y);
 				this.cooldown1 = 2;
 				this.cooldown2 = -200;
 				this.maxHealth = 40;
+                this.health = this.maxHealth;
 				this.md = 0 * ((Math.random() > .5) ? -1 : 1);
 				enemies.push(this);
 			}
@@ -223,6 +225,7 @@
 				this.position = new Vector(x,y);
 				this.cooldown = 60;
 				this.maxHealth = 40;
+                this.health = this.maxHealth;
 				this.md = 80 * ((Math.random() > .5) ? -1 : 1);
 				this.addAnimation('enemies/waterblob/waterblob.anims').then(()=>{
 					this.animation.play('idle',true);
@@ -240,7 +243,7 @@
 				// this.position = pos;
 				this.cooldown--;
 				if(this.cooldown == 0){
-					this.cooldown = 300;
+					this.cooldown = 60;
                     var bulletcount = random(4, 10)
 					for (let i = 0; i < 360; i += 360 / bulletcount){
 						let nb = new Bullet(pos.x,pos.y,i,'enemies/waterblob/waterbullet.png');
@@ -266,6 +269,9 @@
 				this.nextRoom = 'level0';
 				this.activated = false;
 				this.addMovement(this.check);
+				if(this.touches(background)){
+					this.direction = 90;
+				}
 				sprites.push(this);
 			}
 			activate(){
@@ -298,6 +304,7 @@
                 this.position = new Vector(x, y);
                 this.cooldown = 30;
                 this.maxHealth = 30;
+                this.health = this.maxHealth;
 				this.md = 60 * ((Math.random() > .5) ? -1 : 1);
 				this.mode = 0;
                 enemies.push(this);
@@ -343,7 +350,6 @@
             }
         }
 
-		Sprite.prototype.health = 40;
 		Sprite.prototype.healthBar = new Bar(0,0,50,10);
 		Sprite.prototype.showHealth = function(){
 			this.healthBar.pert = this.health / this.maxHealth;
@@ -428,6 +434,7 @@
 					level_data.map = nm;
 					sprites = [];
 					lines = [];
+					enemies = [];
 					level_data.lines = [];
 					level_data.spts = [];
 				}
@@ -525,6 +532,10 @@
 					let it = new Image;
 					it.src = INVENTORY[i].path;
 					ctx.drawImage(it,x+itemframe.width/2-it.width/2,y+itemframe.height/2-it.height/2);
+					if(mouse.down && mouse.pos.x > x && mouse.pos.y > y && mouse.pos.x < x+64 && mouse.pos.y < y+64){
+						useItem(INVENTORY[i]);
+						INVENTORY.splice(i,1);
+					}
 				}
 			}
 		}
@@ -579,13 +590,18 @@
 			weapon.transformX = -1;
 		}
 
+		function useItem(item){
+			if(item.name=='hp'){
+				player.health = player.maxHealth;
+			}
+		}
 
 		function attack(){
 			try{
 				if(weapon.type == 'nod'){
 					weapon.animation.play('load').then(d=>{
 						let arrow = new Bullet(weapons.pos.x,weapon.pos.y,weapon.dir,'weapons/arrow.png');
-						arrow.parr = 
+						arrow.parr = my_bullets;
 						weapon.animation.play('fire');
 					});
 				} else {
