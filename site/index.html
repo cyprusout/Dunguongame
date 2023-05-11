@@ -361,7 +361,7 @@
 
 		var classes = imgs.map(e=>e.name);
 
-		function spawnSprites(sprts){
+		function spawnSprites(sprts,EDITOR=false){
 			enemies = [];
 			sprites = [];
 			for(let sprite of sprts){
@@ -471,14 +471,14 @@
 			}
 			if(keys.down('a')){
 				pos.x -= speed;
-				player.transformX = -1;
+				if(player.health > 0) player.transformX = -1;
 			}
 			if(keys.down('d')){
 				pos.x += speed;
-				player.transformX = 1;
+				if(player.health > 0) player.transformX = 1;
 			}
 			if(keys.down('w') || keys.down('a') || keys.down('s') || keys.down('d')){
-				player.animation.play('walk');
+				if(player.health > 0) player.animation.play('walk');
 			} else {
 				player.animation.stop();
 			}
@@ -647,11 +647,10 @@
 			let req = await fetch(`levels/${level_name}.json`);
 			level_data = await req.json();
 			loadMap(level_data.map);
-			if(!EDITOR) spawnSprites(level_data.spts);
+			spawnSprites(level_data.spts,EDITOR);
 			loadLines(level_data.lines);
 			started = true;
 			loop();
-			if(EDITOR) level_data.spts = [];
 			player.position = new Vector(level_data.sx,level_data.sy);
 			if(!EDITOR) canvas.requestFullscreen();
 		}
@@ -691,9 +690,11 @@
 				}
 			}
 			for(let e of enemies){
-				if(!EDITOR) e.attack();
+				if(!EDITOR){
+					e.attack();
+					e.showHealth();
+				}
 				e.draw();
-				e.showHealth();
 			}
 			weapon.draw();
 			if(mouse.down && !EDITOR && player.health > 0){
