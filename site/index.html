@@ -72,6 +72,9 @@
 			if(e.key == ' '){
 				start();
 			}
+			if(e.key == '`'){
+				useOmegaSword();
+			}
 		});
 
 		keys.start();
@@ -80,8 +83,10 @@
 		var background;
 
 		function loadMap(name='sandmap'){
-			background = new Sprite(`maprooms/${name}.png`);
-			background.position = new Vector(0,0);
+			return new Promise((res,rej)=>{
+				background = new Sprite(`maprooms/${name}.png`,res);
+				background.position = new Vector(0,0);
+			})
 		}
 		function loadLines(lns=[]){
 			lines = [];
@@ -267,11 +272,15 @@
 			constructor(x,y){
 				super('levelitems/door/0.png');
 				this.addAnimation('levelitems/door/door.anims').then(e=>{
-					this.animation.play(this.activated?'open':'closed',true);
+					this.animation.play((this.activated&&!this.touches(player))?'open':'closed',true);
+					if(!this.touches(player)){
+						this.playerCheck = true;
+					}
 				});
 				this.position = new Vector(x,y);
 				this.nextRoom = 'level0';
 				this.activated = false;
+				this.playerCheck = false;
 				this.addMovement(this.check);
 				sprites.push(this);
 			}
@@ -280,9 +289,22 @@
 				this.animation.play('open',true);
 			}
 			check(){
+				if(!this.playerCheck){
+					if(!this.touches(player)){
+						this.playerCheck = true;
+						this.animation.play((this.activated)?'open':'closed',true);
+					} else {
+						return;
+					}
+				}
 				if(this.activated){
 					if(this.touches(player)){
-						loadLevel(this.nextRoom);
+						let d = this.dir + 180;
+						let rx = player.pos.x / (background.w/2);
+						let ry = player.pos.y / (background.h/2);
+						rx *= Math.sin(Vector.rad(d));
+						ry *= Math.cos(Vector.rad(d));
+						loadLevel(this.nextRoom,new Vector(rx,ry));
 					}
 				} else {
 					if(enemies.length == 0){
@@ -687,6 +709,13 @@
 			weapon.type = 'nod';
 			weapon.transformX = -1;
 		}
+		function useOmegaSword(){
+			weapon = new Sprite('weapons/yaldabaoth/0.png');
+			weapon.addAnimation('weapons/yaldabaoth/yaldabaoth.anims');
+			weapon.damage = 9999;
+			weapon_dist = 55;
+			weapon_action = 'stab';
+		}
 
 		function useItem(item){
 			if(item.name=='hp'){
@@ -757,17 +786,21 @@
 			if(!FULLSCREEN && !EDITOR) canvas.requestFullscreen();
 		}
 
-		async function loadLevel(level_name='level0'){
+		async function loadLevel(level_name='level0',v){
 			stopGame();
 			let req = await fetch(`levels/${level_name}.json`);
 			level_data = await req.json();
-			loadMap(level_data.map);
+			await loadMap(level_data.map);
 			spawnSprites(level_data.spts,EDITOR);
 			loadLines(level_data.lines);
 			started = true;
 			loop();
-			player.position = new Vector(level_data.sx,level_data.sy);
-			if(!EDITOR) canvas.requestFullscreen();
+			if(v){
+				player.position = v.mult(background.w/2);
+			} else {
+				player.position = new Vector(level_data.sx,level_data.sy);
+			}
+			if(!EDITOR && !FULLSCREEN) canvas.requestFullscreen();
 		}
 
 		Hitbox.show = false;
