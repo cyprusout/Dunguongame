@@ -132,6 +132,7 @@
             {ix:5,name:'LaserBull',path:'enemies/LaserBull.png'},
             {ix:6,name:'Spike',path:'enemies/spikes.png'},
             {ix:7,name:'SandWorm',path:'enemies/sandworm/00.png'},
+            {ix:8,name:'Chest',path:'levelitems/chest/0.png'},
 		];
 
 		function setupTools(){
@@ -456,6 +457,14 @@
 				this.visible = false;
 				this.inHole = true;
 				this.cooldown = 300;
+			}
+		}
+		class Chest extends Sprite{
+			constructor(x,y){
+				super('levelitems/chest/0.png');
+				this.addAnimation('levelitems/chest/chest.anims');
+				this.position = new Vector(x,y);
+				sprites.push(this);
 			}
 		}
 
