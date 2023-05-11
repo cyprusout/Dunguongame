@@ -65,6 +65,7 @@
 		var my_bullets = [];
 		var lines = [];
 		var GAME = 0;
+		var edit_sprite = null;
 		var INVENTORY = [],inv_cache=[];
 
 		document.on('keydown',e=>{
@@ -139,6 +140,7 @@
 				i.on('click',e=>{
 					if(sel_sprite) sel_sprite.el.classList.remove('selected');
 					sel_sprite = sprite;
+					edit_sprite = new Sprite(sprite.path);
 					i.classList.add('selected');
 				})
 			}
@@ -461,13 +463,29 @@
 					if(sprite.spec){
 						ns.loadSpecCode(sprite.spec);
 					}
+					if(sprite.d){
+						ns.direction = sprite.d;
+					}
 				},w*1000);
 			}
 		}
 
+		function EDITOR_EVENTS(){
+			document.on('wheel',e=>{
+				if(edit_sprite){
+					edit_sprite.direction = edit_sprite.dir + 90;
+				}
+			});
+		}
 		function EDITOR_CONTROLS(){
+			if(mouse.right){
+				edit_sprite = null;
+				if(sel_sprite) sel_sprite.el.classList.remove('selected');
+				sel_sprite = null;
+			}
 			if(sel_sprite && mouse.down){
 				let ne = new Sprite(sel_sprite.path);
+				ne.direction = edit_sprite.dir;
 				ne.position = new Vector(mouse.pos.x-canvas.width/2+player.pos.x,mouse.pos.y-canvas.height/2+player.pos.y);
 				sprites.push(ne);
 				mouse.down = false;
@@ -476,7 +494,7 @@
 				if(obj('#time_delay').checked){
 					w = prompt('Enter delay (in seconds) before this item spawns');
 				}
-				var result = {i:sel_sprite.ix,x:ne.pos.x,y:ne.pos.y,w};
+				var result = {i:sel_sprite.ix,x:ne.pos.x,y:ne.pos.y,w,d:edit_sprite.dir};
 				if(sel_sprite.p == 1){
 					let a = prompt('Is Active (1/0)');
 					let b = prompt('Where does this door lead to (enter level name)')
@@ -732,6 +750,7 @@
 		function start(){
 			if(!started){
 				let lv_name = location.href.split('level=')[1];
+				if(EDITOR) EDITOR_EVENTS();
 				player.health = player.maxHealth;
 				loadLevel(lv_name);
 				if(EDITOR){
@@ -801,6 +820,12 @@
 			}
 			ctx.restore();
 			drawInventory();
+			if(EDITOR && edit_sprite){ 
+				edit_sprite.position = new Vector(mouse.pos.x,mouse.pos.y);
+				ctx.globalAlpha = .5;
+				edit_sprite.draw();
+				ctx.globalAlpha = 1;
+			}
 		}
 
 		function shoot(){
