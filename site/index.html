@@ -464,7 +464,21 @@
 				super('levelitems/chest/0.png');
 				this.addAnimation('levelitems/chest/chest.anims');
 				this.position = new Vector(x,y);
+				this.addMovement(this.open);
+				this.open = false;
+				this.setScale = new Vector(1,.7);
+				lines.push(...this.lines);
 				sprites.push(this);
+			}
+			open(){
+				let dist_to_player = Vector.distance(this.pos.x,this.pos.y,player.pos.x,player.pos.y);
+				if(dist_to_player < 60 && !this.open){
+					this.open = true;
+					this.animation.play('open');
+				} else if(this.open && dist_to_player  >= 60) {
+					this.open = false;
+					this.animation.play('close');
+				}
 			}
 		}
 

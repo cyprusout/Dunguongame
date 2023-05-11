@@ -1,1 +1,1 @@
-{"dirname":"chest","frames":[{"frames":[0,1],"name":"open","fps":"4"},{"frames":[1,0],"name":"close","fps":"4"}],"count":2}
+{"dirname":"levelitems/chest","frames":[{"frames":[0,1],"name":"open","fps":"4"},{"frames":[1,0],"name":"close","fps":"4"}],"count":2}
