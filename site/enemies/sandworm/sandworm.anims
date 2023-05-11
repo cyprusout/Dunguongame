@@ -1,0 +1,1 @@
+{"dirname":"sandworm","frames":[{"frames":[0,1],"name":"walk","fps":"7"},{"frames":[2,3,4],"name":"bite","fps":"7"},{"frames":[5,6,7,8,9,10,11],"name":"run","fps":"7"}],"count":12}
