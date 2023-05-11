@@ -122,8 +122,10 @@
 			{ix:1,name:'FireFly',path:'enemies/fireshooter.png'},
 			{ix:2,name:'WaterBlob',path:'enemies/waterblob/0.png'},
 			{ix:3,name:'Tree',path:'levelitems/tree.png'},
-			{ ix: 4, name: 'Door', path: 'levelitems/door/0.png', p: 1 },
-            { ix: 5, name: 'LaserBull', path: 'enemies/LaserBull.png' },
+			{ix:4,name:'Door',path:'levelitems/door/0.png',p:1 },
+            {ix:5,name:'LaserBull',path:'enemies/LaserBull.png'},
+            {ix:6,name:'Spike',path:'enemies/spikes.png'},
+            {ix:7,name:'SandWorm',path:'enemies/sandworm/00.png'},
 		];
 
 		function setupTools(){
@@ -349,11 +351,92 @@
                 }
             }
         }
+		class Spike extends Sprite{
+			constructor(x,y){
+				super('enemies/spikes.png');
+				this.position = new Vector(x,y);
+				sprites.push(this);
+				this.addMovement(this.stab);
+				this.touchingPlayer = false;
+			}
+			stab(){
+				if(this.touches(player)){
+					if(!this.touchingPlayer) player.health--;
+					this.touchingPlayer = true;
+				} else {
+					this.touchingPlayer = false;
+				}
+			}
+		}
+		class SandWorm extends Sprite{
+			constructor(x,y){
+				super('enemies/sandworm/00.png');
+				this.position = new Vector(x,y);
+				enemies.push(this);
+				this.addAnimation('enemies/sandworm/sandworm.anims');
+				this.inHole = true;
+				this.cooldown = 300;
+				this.speed = 5;
+				this.maxHealth = 35;
+				this.health = this.maxHealth;
+				this.visible = false;
+				this.doDamage = false;
+				this.shouldMove = false;
+				this.scale.x = .25;
+				this.scale.y = .8;
+			}
+			attack(){
+				this.cooldown--;
+				if(this.shouldMove){
+					let p = this.pos.clone();
+					p.x += this.speed * Math.cos(this.dir*Math.PI/180);
+					p.y += this.speed * Math.sin(this.dir*Math.PI/180);
+					this.position = p;
+				}
+				if(this.touches(player) && this.doDamage){
+					player.health--;
+				}
+				if(this.cooldown == 0){
+					if(this.inHole){
+						this.playAnimation();
+						var pos_off = player.pos.clone();
+						if(Math.random() < .5){
+							this.direction = 180 * random(0,1);
+							this.offset.x = (-10+this.w/2) * Math.cos(this.dir);
+							this.offset.y = 0;
+						} else {
+							this.direction = 90 + 180 * random(0,1);
+							this.offset.x = 0;
+							this.offset.y = (-10+this.w/2) * Math.sin(this.dir);
+						}
+						this.position = Vector.getPointIn(Vector.rad(this.dir+180),150,pos_off.x,pos_off.y);
+					}
+				}
+			}
+			async playAnimation(){
+				this.inHole = false;
+				this.visible = true;
+				await this.animation.play('show');
+				this.shouldMove = true;
+				// await this.animation.play('slither');
+				this.doDamage = true;
+				await this.animation.play('attack');
+				await this.animation.play('attack');
+				this.doDamage = false;
+				this.shouldMove = false;
+				await this.animation.play('hide');
+				this.visible = false;
+				this.inHole = true;
+				this.cooldown = 300;
+			}
+		}
 
 		Sprite.prototype.healthBar = new Bar(0,0,50,10);
 		Sprite.prototype.showHealth = function(){
-			this.healthBar.pert = this.health / this.maxHealth;
-			this.healthBar.draw(this.pos.x,this.pos.y-this.h/2-5);
+			if(this.visible){
+				this.healthBar.pert = this.health / this.maxHealth;
+				this.healthBar.draw(this.pos.x,this.pos.y-this.h/2-5);
+			}
 		}
 		Sprite.prototype.isTouchingLines = function(){
 			for(let l of lines){
@@ -609,7 +692,7 @@
 						if(!d) return;
 						for(let e of enemies){
 							if(weapon.touches(e)){
-								e.health -= weapon.damage;
+								if(e.visible) e.health -= weapon.damage;
 								if(e.health <= 0){
 									enemies.splice(enemies.indexOf(e),1);
 									let poof = new Sprite('poof/0.png');
