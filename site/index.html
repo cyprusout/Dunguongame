@@ -208,7 +208,7 @@
 			}
 			drop(){
 				Inventory.money(10,'c');
-				new Gem(this.pos.x+random(-10,10),this.pos.y+random(-10,10),'gg');
+				new Gem(this.pos.x+random(-30,30),this.pos.y+random(-30,30),'gg');
 			}
 		}
 		class FireFly extends Sprite{
@@ -828,9 +828,14 @@
 				ctx.fillText(MONEY.c+'',x+30,y+22);
 			}
 
+			function getBalance(){
+				return MONEY;
+			}
+
 			Inventory.money = money;
 			Inventory.draw = draw;
 			Inventory.addItem = addItem;
+			Inventory.getBalance = getBalance;
 		})(this); // INVENTORY
 
 		(function(global){
