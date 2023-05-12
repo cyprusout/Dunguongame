@@ -30,6 +30,7 @@
 	<script src="audio.js"></script>
 </head>
 <body>
+	<div style="font-family: PressStart;"> </div>
 	<game>
 		<canvas width=1200 height=800></canvas>
 		<div id=edit>
@@ -45,11 +46,6 @@
 	<script>
 		const canvas = obj('canvas');
 		const ctx = canvas.getContext('2d');
-		ctx.fillStyle = 'white';
-		ctx.font = '40px sans-serif';
-		ctx.fillText('Press Space to Start',50,50);
-		ctx.fill();
-
 
 		Hitbox.show = false;
 
@@ -86,6 +82,7 @@
             {ix:6,name:'Spike',path:'enemies/spikes.png'},
             {ix:7,name:'SandWorm',path:'enemies/sandworm/00.png'},
             {ix:8,name:'Chest',path:'levelitems/chest/0.png',p:2},
+            {ix:9,name:'Sign',path:'levelitems/sign/0.png',p:3},
 		];
 		var classes = imgs.map(e=>e.name);
 
@@ -102,6 +99,20 @@
 		loadMap();
 		useSpear();
 
+		const gamefont = new FontFace('gamefont', 'url(gui/font.ttf)');
+		gamefont.load().then((font) => {
+		  document.fonts.add(font);
+		  titleScreen();
+		});
+
+		function titleScreen(){
+			ctx.clearRect(-2,-2,canvas.width+2,canvas.height+2);
+			ctx.fillStyle = 'white';
+			ctx.textAlign = 'center';
+			ctx.font = '40px gamefont';
+			ctx.fillText('Press Space to Start',canvas.width/2,canvas.height/2);
+			ctx.fill();
+		}
 
 		function loadMap(name='sandmap'){
 			return new Promise((res,rej)=>{
@@ -508,7 +519,7 @@
 			read(){
 				let dist_to_player = Vector.distance(this.pos.x,this.pos.y,player.pos.x,player.pos.y);
 				if(dist_to_player < 60){
-					Dialog.display(this.message,this.pos);
+					Dialog.displayFixed(this.message,this.pos);
 				}
 			}
 			loadSpecCode(spec){
@@ -587,6 +598,12 @@
 				}
 				if(sel_sprite.p == 2){
 					let t = prompt('Enter treasure');
+					if(t){
+						result.spec = t;
+					}
+				}
+				if(sel_sprite.p == 3){
+					let t = prompt('The sign says:')
 					if(t){
 						result.spec = t;
 					}
@@ -720,7 +737,7 @@
 			var random_rewards = ['hp'];
 			var inv_max = 6;
 			var itemframe = new Image;
-			itemframe.src = 'itemframe.png';
+			itemframe.src = 'gui/itemframe.png';
 			var items = [{name:'hp',path:'potion/0.png'}];
 			function addItem(item){
 				if(item == 'random'){
@@ -760,11 +777,63 @@
 			const Dialog = {};
 			global.Dialog = Dialog;
 
-			function display(text,pos){
+			var textbox = new Image;
+			textbox.src = 'gui/textbox.png';
+			ctx.textAlign = 'center';
 
+			var display = false;
+			var D_TEXT = '';
+
+			function display(text,pos){
+				ctx.font = '15px gamefont';
+				let split_text = getLines(text,240);
+				ctx.drawImage(textbox,pos.x-150,pos.y-100,300,70);
+				ctx.fillStyle = 'white';
+				for(let i=0;i<split_text.length;i++){
+					ctx.fillText(split_text[i],pos.x,pos.y-80+(20*i));
+				}
 			}
 
+			function displayFixed(text){
+				D_TEXT = text;
+				setTimeout(()=>{
+					D_TEXT = '';
+				},1000);
+			}
+
+			function draw(){
+				if(!D_TEXT) return;
+				let x = 150;
+				let y = canvas.height - 150;
+				ctx.font = '15px gamefont';
+				let split_text = getLines(D_TEXT,240);
+				ctx.drawImage(textbox,x-150,y,300,70);
+				ctx.fillStyle = 'white';
+				for(let i=0;i<split_text.length;i++){
+					ctx.fillText(split_text[i],x,y+20+(20*i));
+				}
+			}
+
+			function getLines(text, maxWidth) {
+			    var words = text.split(" ");
+			    var lines = [];
+			    var currentLine = words[0];
+			    for (var i = 1; i < words.length; i++) {
+			        var word = words[i];
+			        var width = ctx.measureText(currentLine + " " + word).width;
+			        if (width < maxWidth) {
+			            currentLine += " " + word;
+			        } else {
+			            lines.push(currentLine);
+			            currentLine = word;
+			        }
+			    }
+			    lines.push(currentLine);
+			    return lines;
+			}
+			Dialog.draw = draw;
 			Dialog.display = display;
+			Dialog.displayFixed = displayFixed;
 
 		})(this); // DIALOG
 
@@ -945,6 +1014,7 @@
 			}
 			ctx.restore();
 			Inventory.draw();
+			Dialog.draw();
 			if(EDITOR && edit_sprite){ 
 				edit_sprite.position = new Vector(mouse.pos.x,mouse.pos.y);
 				ctx.globalAlpha = .5;
