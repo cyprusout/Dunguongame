@@ -234,7 +234,7 @@
 				this.speed = .5;
 				this.position = new Vector(x,y);
 				this.cooldown = 60;
-				this.maxHealth = 40;
+				this.maxHealth = 35;
                 this.health = this.maxHealth;
 				this.md = 80 * ((Math.random() > .5) ? -1 : 1);
 				this.addAnimation('enemies/waterblob/waterblob.anims').then(()=>{
@@ -253,7 +253,7 @@
 				// this.position = pos;
 				this.cooldown--;
 				if(this.cooldown == 0){
-					this.cooldown = 60;
+					this.cooldown = 120;
                     var bulletcount = random(4, 10)
 					for (let i = 0; i < 360; i += 360 / bulletcount){
 						let nb = new Bullet(pos.x,pos.y,i,'enemies/waterblob/waterbullet.png');
@@ -406,7 +406,7 @@
 				this.inHole = true;
 				this.cooldown = 300;
 				this.speed = 5;
-				this.maxHealth = 35;
+				this.maxHealth = 30;
 				this.health = this.maxHealth;
 				this.visible = false;
 				this.doDamage = false;
@@ -706,7 +706,7 @@
 			weapon = new Sprite('weapons/mace/0.png');
 			weapon.addAnimation('weapons/mace/mace.anims');
 			weapon_action = 'swing';
-			weapon.damage = 8;
+			weapon.damage = 10;
 			weapon_dist = 20;
 			weapon.transformX = -1;
 		}
@@ -717,6 +717,13 @@
 			weapon.damage = 3;
 			weapon_dist = 40;
 			weapon.transformX = -1;
+		}
+		function useAxe(){
+			weapon = new Sprite('weapons/axe/0.png');
+			weapon.addAnimation('weapons/axe/axe.anims');
+			weapon_action = 'swing';
+			weapon.damage = 5;
+			weapon_dist = 25;
 		}
 		function useKnives(){
 			weapon = new Sprite('weapons/knives/0.png');
@@ -789,7 +796,7 @@
 			} 
 		}
 
-		var equips = [useSpear,useMace,useLongSword,useKnives,useSword,useCrossbow];
+		var equips = [useSpear,useMace,useLongSword,useKnives,useSword,useAxe];
 		var weapon_ix = 0;
 
 		function nWeapon(){
