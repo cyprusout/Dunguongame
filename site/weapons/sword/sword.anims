@@ -1,1 +1,1 @@
-{"dirname":"weapons/sword","frames":[{"frames":[0,1,0],"name":"swing","fps":"9"}],"count":2}
+{"dirname":"weapons/sword","frames":[{"frames":[1,0],"name":"swing","fps":"6"}],"count":2}
