@@ -206,6 +206,10 @@
 					bullets.push(b1,b2,b3);
 				}
 			}
+			drop(){
+				Inventory.money(10,'c');
+				new Gem(this.pos.x+random(-10,10),this.pos.y+random(-10,10),'gg');
+			}
 		}
 		class FireFly extends Sprite{
 			constructor(x,y){
@@ -245,6 +249,11 @@
 					this.direction = d;
 				}
 			}
+			drop(){
+				Inventory.money(25,'c');
+				new Gem(this.pos.x+random(-10,10),this.pos.y+random(-10,10),'rg');
+				new Gem(this.pos.x+random(-10,10),this.pos.y+random(-10,10),'rg');
+			}
 		}
 		class WaterBlob extends Sprite{
 			constructor(x,y){
@@ -278,6 +287,10 @@
 						bullets.push(nb);
 					}
 				}
+			}
+			drop(){
+				Inventory.money(10,'c');
+				new Gem(this.pos.x+random(-10,10),this.pos.y+random(-10,10),'bg');
 			}
 		}
 		class Tree extends Sprite{
@@ -476,6 +489,10 @@
 				this.inHole = true;
 				this.cooldown = 300;
 			}
+			drop(){
+				Inventory.money(15,'c');
+				new Gem(this.pos.x+random(-10,10),this.pos.y+random(-10,10),'og');
+			}
 		}
 		class Chest extends Sprite{
 			constructor(x,y){
@@ -524,6 +541,22 @@
 			}
 			loadSpecCode(spec){
 				this.message = spec;
+			}
+		}
+		class Gem extends Sprite{
+			constructor(x,y,t){
+				var types = ['rg','gg','og','bg'];
+				super(`levelitems/gems/${types.indexOf(t)}.png`);
+				this.type = t;
+				this.position = new Vector(x,y);
+				this.addMovement(this.pickup);
+				sprites.push(this);
+			}
+			pickup(){
+				if(this.touches(player)){
+					sprites.splice(sprites.indexOf(this),1);
+					Inventory.money(1,this.type);
+				}
 			}
 		}
 
@@ -736,9 +769,20 @@
 			var INVENTORY = [];
 			var random_rewards = ['hp'];
 			var inv_max = 6;
+			var MONEY = {c:0,rg:0,gg:0,og:0,bg:0}
 			var itemframe = new Image;
 			itemframe.src = 'gui/itemframe.png';
 			var items = [{name:'hp',path:'potion/0.png'}];
+
+			var money_paths = ['levelitems/coin.png','levelitems/gems/0.png','levelitems/gems/1.png','levelitems/gems/2.png','levelitems/gems/3.png']
+			var money_imgs = [];
+
+			for(let mp of money_paths){
+				let i = new Image;
+				i.src = mp;
+				money_imgs.push(i);
+			}
+
 			function addItem(item){
 				if(item == 'random'){
 					item = random_rewards[random(0,random_rewards.length-1)];
@@ -753,6 +797,7 @@
 			}
 
 			function draw(){
+				drawMoney();
 				for(let i=0;i<Math.max(INVENTORY.length,3);i++){
 					let x = i*(itemframe.width+5)+5;
 					let y = canvas.height-itemframe.height-5;
@@ -769,6 +814,21 @@
 				}
 			}
 
+			function money(amount,type){
+				MONEY[type] += amount;
+			}
+
+			function drawMoney(){
+				var x = canvas.width-100;
+				var y = 5;
+				ctx.drawImage(money_imgs[0],x,y,30,30);
+				ctx.textAlign = 'left';
+				ctx.font = '20px gamefont';
+				ctx.fillStyle = '#ca9518';
+				ctx.fillText(MONEY.c+'',x+30,y+22);
+			}
+
+			Inventory.money = money;
 			Inventory.draw = draw;
 			Inventory.addItem = addItem;
 		})(this); // INVENTORY
@@ -779,11 +839,11 @@
 
 			var textbox = new Image;
 			textbox.src = 'gui/textbox.png';
-			ctx.textAlign = 'center';
 
 			var D_TEXT = '';
 
 			function display(text,pos){
+				ctx.textAlign = 'center';
 				ctx.font = '15px gamefont';
 				let split_text = getLines(text,240);
 				ctx.drawImage(textbox,pos.x-150,pos.y-110,300,70);
@@ -802,6 +862,7 @@
 
 			function draw(){
 				if(!D_TEXT) return;
+				ctx.textAlign = 'center';
 				let x = 150;
 				let y = canvas.height - 150;
 				ctx.font = '15px gamefont';
@@ -916,6 +977,7 @@
 								if(e.visible) e.health -= weapon.damage;
 								if(e.health <= 0){
 									enemies.splice(enemies.indexOf(e),1);
+									if(e.drop) e.drop();
 									let poof = new Sprite('poof/0.png');
 									poof.position = new Vector(e.pos.x,e.pos.y);
 									poof.addAnimation('poof/poof.anims').then(e=>{
