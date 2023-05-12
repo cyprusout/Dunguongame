@@ -519,7 +519,7 @@
 			read(){
 				let dist_to_player = Vector.distance(this.pos.x,this.pos.y,player.pos.x,player.pos.y);
 				if(dist_to_player < 60){
-					Dialog.displayFixed(this.message,this.pos);
+					Dialog.display(this.message,this.pos);
 				}
 			}
 			loadSpecCode(spec){
@@ -781,16 +781,15 @@
 			textbox.src = 'gui/textbox.png';
 			ctx.textAlign = 'center';
 
-			var display = false;
 			var D_TEXT = '';
 
 			function display(text,pos){
 				ctx.font = '15px gamefont';
 				let split_text = getLines(text,240);
-				ctx.drawImage(textbox,pos.x-150,pos.y-100,300,70);
+				ctx.drawImage(textbox,pos.x-150,pos.y-110,300,70);
 				ctx.fillStyle = 'white';
 				for(let i=0;i<split_text.length;i++){
-					ctx.fillText(split_text[i],pos.x,pos.y-80+(20*i));
+					ctx.fillText(split_text[i],pos.x,pos.y-90+(20*i));
 				}
 			}
 
@@ -798,7 +797,7 @@
 				D_TEXT = text;
 				setTimeout(()=>{
 					D_TEXT = '';
-				},1000);
+				},1);
 			}
 
 			function draw(){
@@ -831,6 +830,7 @@
 			    lines.push(currentLine);
 			    return lines;
 			}
+
 			Dialog.draw = draw;
 			Dialog.display = display;
 			Dialog.displayFixed = displayFixed;
