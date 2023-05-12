@@ -50,15 +50,16 @@
 		ctx.fillText('Press Space to Start',50,50);
 		ctx.fill();
 
+
+		Hitbox.show = false;
+
 		var EDITOR = location.href.includes('editor');
-
 		var sel_sprite=null;
-
 		var player = new Sprite('Player/0.png');
 		player.addAnimation('Player/player.anims');
 		player.maxHealth = 30;
 		var DRAW_MODE = 0,o_pos = null;
-
+		var started = false;
 		var bullets = [];
 		var enemies = [];
 		var sprites = [];
@@ -66,6 +67,27 @@
 		var lines = [];
 		var GAME = 0;
 		var edit_sprite = null;
+		var background;
+		var weapon;
+		var weapon_action = '';
+		var weapon_dist = 0;
+
+		var level_data = {spts:[],map:'sandmap',sx:0,sy:0,lines:[]};
+		var equips = [useSpear,useMace,useLongSword,useKnives,useSword,useAxe];
+		var weapon_ix = 0;
+
+		var imgs = [
+			{ix:0,name:'Tri1',path:'enemies/bushman.png'},
+			{ix:1,name:'FireFly',path:'enemies/fireshooter.png'},
+			{ix:2,name:'WaterBlob',path:'enemies/waterblob/0.png'},
+			{ix:3,name:'Tree',path:'levelitems/tree.png'},
+			{ix:4,name:'Door',path:'levelitems/door/0.png',p:1},
+            {ix:5,name:'LaserBull',path:'enemies/LaserBull.png'},
+            {ix:6,name:'Spike',path:'enemies/spikes.png'},
+            {ix:7,name:'SandWorm',path:'enemies/sandworm/00.png'},
+            {ix:8,name:'Chest',path:'levelitems/chest/0.png',p:2},
+		];
+		var classes = imgs.map(e=>e.name);
 
 		document.on('keydown',e=>{
 			if(e.key == ' '){
@@ -75,11 +97,11 @@
 				useOmegaSword();
 			}
 		});
-
 		keys.start();
 		mouse.start(canvas);
+		loadMap();
+		useSpear();
 
-		var background;
 
 		function loadMap(name='sandmap'){
 			return new Promise((res,rej)=>{
@@ -93,8 +115,6 @@
 				lines.push(new Line(l.x1,l.y1,l.x2,l.y2));
 			}
 		}
-
-		loadMap();
 
 		class Bullet extends Sprite{
 			constructor(x,y,d,path='bullet.png'){
@@ -121,18 +141,6 @@
 				}
 			}
 		}
-
-		var imgs = [
-			{ix:0,name:'Tri1',path:'enemies/bushman.png'},
-			{ix:1,name:'FireFly',path:'enemies/fireshooter.png'},
-			{ix:2,name:'WaterBlob',path:'enemies/waterblob/0.png'},
-			{ix:3,name:'Tree',path:'levelitems/tree.png'},
-			{ix:4,name:'Door',path:'levelitems/door/0.png',p:1},
-            {ix:5,name:'LaserBull',path:'enemies/LaserBull.png'},
-            {ix:6,name:'Spike',path:'enemies/spikes.png'},
-            {ix:7,name:'SandWorm',path:'enemies/sandworm/00.png'},
-            {ix:8,name:'Chest',path:'levelitems/chest/0.png',p:2},
-		];
 
 		function setupTools(){
 			show(obj('#edit'));
@@ -489,6 +497,24 @@
 				this.treasure = spec;
 			}
 		}
+		class Sign extends Sprite{
+			constructor(x,y){
+				super('levelitems/sign/0.png');
+				this.position = new Vector(x,y);
+				this.message = '';
+				sprites.push(this);
+				this.addMovement(this.read);
+			}
+			read(){
+				let dist_to_player = Vector.distance(this.pos.x,this.pos.y,player.pos.x,player.pos.y);
+				if(dist_to_player < 60){
+					Dialog.display(this.message,this.pos);
+				}
+			}
+			loadSpecCode(spec){
+				this.message = spec;
+			}
+		}
 
 		Sprite.prototype.healthBar = new Bar(0,0,50,10);
 		Sprite.prototype.showHealth = function(){
@@ -506,8 +532,6 @@
 			return false;
 		}
 
-
-		var classes = imgs.map(e=>e.name);
 
 		function spawnSprites(sprts,EDITOR=false){
 			enemies = [];
@@ -683,7 +707,6 @@
 			}
 		}
 
-
 		function useItem(item){
 			if(item.name=='hp'){
 				player.health = player.maxHealth;
@@ -733,9 +756,17 @@
 			Inventory.addItem = addItem;
 		})(this); // INVENTORY
 
+		(function(global){
+			const Dialog = {};
+			global.Dialog = Dialog;
 
+			function display(text,pos){
 
-		var level_data = {spts:[],map:'sandmap',sx:0,sy:0,lines:[]};
+			}
+
+			Dialog.display = display;
+
+		})(this); // DIALOG
 
 		function useSpear(){
 			weapon = new Sprite('weapons/spear/0.png');
@@ -834,21 +865,12 @@
 			} 
 		}
 
-		var equips = [useSpear,useMace,useLongSword,useKnives,useSword,useAxe];
-		var weapon_ix = 0;
-
 		function nWeapon(){
 			if(player.health >= 0){
 				weapon_ix = (weapon_ix+1) % equips.length;
 				equips[weapon_ix]();
 			}
 		}
-
-		var weapon;
-		var weapon_action = '';
-		var weapon_dist = 0;
-
-		useSpear();
 
 		function start(){
 			if(!started){
@@ -879,10 +901,6 @@
 			}
 			// if(!EDITOR && !FULLSCREEN) canvas.requestFullscreen();
 		}
-
-		Hitbox.show = false;
-
-		var started = false;
 
 		function stopGame(){
 			started = false;
@@ -934,16 +952,6 @@
 				ctx.globalAlpha = 1;
 			}
 		}
-
-		function shoot(){
-			let x = random(0,canvas.width);
-			let y = 0;
-			// let d = Vector.getDir(x-player.pos.x,y-player.pos.y);
-			let d = 90;
-			let nb = new Bullet(x,y,d);
-			bullets.push(nb);
-		}
-
 	</script>
 </body>
 </html>
