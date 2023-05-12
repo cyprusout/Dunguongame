@@ -66,7 +66,6 @@
 		var lines = [];
 		var GAME = 0;
 		var edit_sprite = null;
-		var INVENTORY = [],inv_cache=[];
 
 		document.on('keydown',e=>{
 			if(e.key == ' '){
@@ -132,7 +131,7 @@
             {ix:5,name:'LaserBull',path:'enemies/LaserBull.png'},
             {ix:6,name:'Spike',path:'enemies/spikes.png'},
             {ix:7,name:'SandWorm',path:'enemies/sandworm/00.png'},
-            {ix:8,name:'Chest',path:'levelitems/chest/0.png'},
+            {ix:8,name:'Chest',path:'levelitems/chest/0.png',p:2},
 		];
 
 		function setupTools(){
@@ -466,6 +465,7 @@
 				this.position = new Vector(x,y);
 				this.addMovement(this.open);
 				this.open = false;
+				this.treasure = 'random';
 				this.setScale = new Vector(1,.7);
 				lines.push(...this.lines);
 				sprites.push(this);
@@ -474,11 +474,19 @@
 				let dist_to_player = Vector.distance(this.pos.x,this.pos.y,player.pos.x,player.pos.y);
 				if(dist_to_player < 60 && !this.open){
 					this.open = true;
-					this.animation.play('open');
+					this.animation.play('open').then(e=>{
+						if(this.treasure){
+							Inventory.addItem(this.treasure);
+							this.treasure = null;
+						}
+					});
 				} else if(this.open && dist_to_player  >= 60) {
 					this.open = false;
 					this.animation.play('close');
 				}
+			}
+			loadSpecCode(spec){
+				this.treasure = spec;
 			}
 		}
 
@@ -552,6 +560,12 @@
 					if(!a) a='0';
 					if(!b) b='level0';
 					result.spec = a+','+b;
+				}
+				if(sel_sprite.p == 2){
+					let t = prompt('Enter treasure');
+					if(t){
+						result.spec = t;
+					}
 				}
 				level_data.spts.push(result);
 			}
@@ -670,27 +684,56 @@
 		}
 
 
-		var itemframe = new Image;
-		itemframe.src = 'itemframe.png';
+		function useItem(item){
+			if(item.name=='hp'){
+				player.health = player.maxHealth;
+			}
+		}
 
-		INVENTORY.push({name:'hp',path:'potion/0.png'});
+		(function(global){
+			const Inventory = {};
+			global.Inventory = Inventory;
+			var INVENTORY = [];
+			var random_rewards = ['hp'];
+			var inv_max = 6;
+			var itemframe = new Image;
+			itemframe.src = 'itemframe.png';
+			var items = [{name:'hp',path:'potion/0.png'}];
+			function addItem(item){
+				if(item == 'random'){
+					item = random_rewards[random(0,random_rewards.length-1)];
+				}
+				let it_obj = items.filter(e=>(e.name==item))[0];
+				if(INVENTORY.length < inv_max){
+					INVENTORY.push(it_obj);
+					return true;
+				} else {
+					return false;
+				}
+			}
 
-		function drawInventory(){
-			for(let i=0;i<Math.max(INVENTORY.length,3);i++){
-				let x = i*(itemframe.width+5)+5;
-				let y = canvas.height-itemframe.height-5;
-				ctx.drawImage(itemframe,x,y,64,64);
-				if(INVENTORY[i]){
-					let it = new Image;
-					it.src = INVENTORY[i].path;
-					ctx.drawImage(it,x+itemframe.width/2-it.width/2,y+itemframe.height/2-it.height/2);
-					if(mouse.down && mouse.pos.x > x && mouse.pos.y > y && mouse.pos.x < x+64 && mouse.pos.y < y+64){
-						useItem(INVENTORY[i]);
-						INVENTORY.splice(i,1);
+			function draw(){
+				for(let i=0;i<Math.max(INVENTORY.length,3);i++){
+					let x = i*(itemframe.width+5)+5;
+					let y = canvas.height-itemframe.height-5;
+					ctx.drawImage(itemframe,x,y,64,64);
+					if(INVENTORY[i]){
+						let it = new Image;
+						it.src = INVENTORY[i].path;
+						ctx.drawImage(it,x+itemframe.width/2-it.width/2,y+itemframe.height/2-it.height/2);
+						if(mouse.down && mouse.pos.x > x && mouse.pos.y > y && mouse.pos.x < x+64 && mouse.pos.y < y+64){
+							useItem(INVENTORY[i]);
+							INVENTORY.splice(i,1);
+						}
 					}
 				}
 			}
-		}
+
+			Inventory.draw = draw;
+			Inventory.addItem = addItem;
+		})(this); // INVENTORY
+
+
 
 		var level_data = {spts:[],map:'sandmap',sx:0,sy:0,lines:[]};
 
@@ -756,11 +799,6 @@
 			weapon_action = 'stab';
 		}
 
-		function useItem(item){
-			if(item.name=='hp'){
-				player.health = player.maxHealth;
-			}
-		}
 
 		function attack(){
 			try{
@@ -888,7 +926,7 @@
 				attack();
 			}
 			ctx.restore();
-			drawInventory();
+			Inventory.draw();
 			if(EDITOR && edit_sprite){ 
 				edit_sprite.position = new Vector(mouse.pos.x,mouse.pos.y);
 				ctx.globalAlpha = .5;
