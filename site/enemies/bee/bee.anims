@@ -1,1 +1,1 @@
-{"dirname":"bee","frames":[{"frames":[0,1],"name":"fly-nice","fps":"8"},{"frames":[2,3],"name":"fly-evil","fps":"8"},{"frames":[4,3],"name":"sting","fps":"4"}],"count":5}
+{"dirname":"enemies/bee","frames":[{"frames":[0,1],"name":"fly-nice","fps":"8"},{"frames":[2,3],"name":"fly-evil","fps":"8"},{"frames":[4,3],"name":"sting","fps":"4"}],"count":5}

@@ -83,6 +83,7 @@
             {ix:7,name:'SandWorm',path:'enemies/sandworm/00.png'},
             {ix:8,name:'Chest',path:'levelitems/chest/0.png',p:2},
             {ix:9,name:'Sign',path:'levelitems/sign/0.png',p:3},
+            {ix:10,name:'Bee',path:'enemies/bee/0.png'},
 		];
 		var classes = imgs.map(e=>e.name);
 
@@ -362,7 +363,7 @@
 		class LaserBull extends Sprite{
             constructor(x, y) {
                 super('enemies/LaserBull.png');
-                this.speed = 2;
+                this.speed = 3.5;
                 this.position = new Vector(x, y);
                 this.cooldown = 30;
                 this.maxHealth = 30;
@@ -392,7 +393,7 @@
 					if (this.mode == 0) {
 						let b1 = new Bullet(pos.x, pos.y, d, 'enemies/LaserRed.png');
                         let b2 = new Bullet(pos.x, pos.y, d, 'enemies/LaserRed.png');
-						b1.speed = 4;
+						b1.speed = 6;
 						b2.speed = -1;
 						this.mode = 1;
 					bullets.push(b1, b2);
@@ -401,8 +402,8 @@
 						let b2 = new Bullet(pos.x, pos.y, d - 15, 'enemies/LaserRed.png');
                         let b3 = new Bullet(pos.x, pos.y, d + 15, 'enemies/LaserRed.png');
                         let b4 = new Bullet(pos.x, pos.y, d - 15, 'enemies/LaserRed.png');
-                        b1.speed = 4;
-						b2.speed = 4;
+                        b1.speed = 6;
+						b2.speed = 6;
                         b3.speed = -1;
                         b4.speed = -1;
 						this.mode = 0;
@@ -556,6 +557,60 @@
 				if(this.touches(player)){
 					sprites.splice(sprites.indexOf(this),1);
 					Inventory.money(1,this.type);
+				}
+			}
+		}
+		class Bee extends Sprite{
+			constructor(x,y){
+				super("enemies/bee/0.png");
+				this.addAnimation("enemies/bee/bee.anims").then(e=>{
+					this.animation.play('fly-nice',true);
+				})
+				this.position = new Vector(x,y);
+				enemies.push(this);
+				this.mode = 'nice';
+				this.d = 1;
+				this.maxHealth = 5;
+				this.health = this.maxHealth;
+				this.damage = 2;
+				this.speed = 4;
+				this.stinging = false;
+			}
+			attack(){
+				if(this.mode == 'nice'){
+					let pos = this.pos.clone();
+					if(this.touches(background)){
+						this.d *= -1;
+						this.transformX = this.d;
+					}
+					pos.x += this.d * this.speed;
+					pos.y += 5 * Math.cos(pos.x/20);
+					this.position = pos;
+					if (Vector.distance(player.pos.x,player.pos.y,this.pos.x,this.pos.y) < 200){
+						this.mode = 'evil';
+						this.animation.play('fly-evil');
+					}
+				}else{
+					let pos = this.pos.clone();
+					let d = Vector.getDir(this.pos.x-player.pos.x,this.pos.y-player.pos.y);
+					if(d > 90 && d < 270){
+						this.transformX = -1;
+					} else {
+						this.transformX = 1;
+					}
+					pos.x += this.speed * Math.cos(Vector.rad(d));
+					pos.y += this.speed * Math.sin(Vector.rad(d));
+					if(this.touches(player)){
+						if(!this.stinging) player.health -= this.damage;
+						this.stinging = true;
+						this.animation.play('sting').then(e=>{
+							if(!e) return;
+							this.stinging = false;
+						});
+					} else if(!this.stinging){
+						this.animation.play('fly-evil');
+						this.position = pos;
+					}
 				}
 			}
 		}
