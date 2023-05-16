@@ -86,6 +86,9 @@ class FireFly extends Sprite{
 		super('enemies/fireshooter.png');
 		this.speed = 4;
 		this.position = new Vector(x,y);
+		this.addAnimation('enemies/fireshooter/fire.anims').then(e=>{
+			this.animation.play('fly',true);
+		});
 		this.cooldown1 = 2;
 		this.cooldown2 = -200;
 		this.maxHealth = 40;

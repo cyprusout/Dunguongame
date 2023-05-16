@@ -1,1 +1,1 @@
-{"dirname":"enemies","frames":[],"count":4}
+{"dirname":"enemies/fireshooter","frames":[{"frames":[0,1,2,3],"name":"fly","fps":"10"}],"count":4}
