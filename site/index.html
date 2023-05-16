@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Document</title>
+	<title>Epic Dungeon Game</title>
 	<link rel="icon" type="image/x-icon" href="icon.png">
 	<style>
 		canvas{
@@ -15,6 +15,8 @@
 		div > img{
 			box-sizing: border-box;
 			border: 0;
+			max-height: 50px;
+			max-width: 50px;
 		}
 		.selected{
 			border: 2px solid red;
@@ -38,7 +40,7 @@
 			<button id=set_map>Choose Map</button>
 			<button id=spawn_point>Set Spawn Point</button>
 			<button id=draw_line>Draw Collision Line</button>
-			<button id=draw_circle>Draw Collision Circle</button>
+			<button id=hitbox_tog>Toggle Hitboxes</button>
 			<button id=save>Download Level</button>
 			<input title="Sprite Spawn Delay" id=time_delay type=checkbox>
 			<br>
@@ -158,8 +160,6 @@
 				})
 			}
 		}
-				this.nextRoom = 'level0';
-				this.activated = false;
 
 		Sprite.prototype.healthBar = new Bar(0,0,50,10);
 		Sprite.prototype.showHealth = function(){
@@ -297,6 +297,13 @@
 				sel_sprite = null;
 				DRAW_MODE = 1;
 			});
+			obj('#hitbox_tog').on('click',e=>{
+				keys.keys['h'] = true;
+			});
+			if(keys.down('h')){
+				keys.keys['h'] = false;
+				Hitbox.show = !Hitbox.show;
+			}
 		}
 
 		function dataExtraction(){
