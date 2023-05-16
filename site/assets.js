@@ -11,6 +11,35 @@ var imgs = [
     {ix:9,name:'Sign',path:'levelitems/sign/0.png',p:3},
     {ix:10,name:'Bee',path:'enemies/bee/0.png'},
     {ix:11,name:'BigRock',path:'levelitems/bigrock.png'},
+    {ix:12,name:'BigSandWall',path:'levelitems/bigsandwall.png'},
+    {ix:13,name:'BigSpike',path:'levelitems/bigspike.png'},
+    {ix:14,name:'BigTree',path:'levelitems/bigtree.png'},
+    {ix:15,name:'Bush1',path:'levelitems/bush1.png'},
+    {ix:16,name:'Bush2',path:'levelitems/bush2.png'},
+    {ix:17,name:'Bushline',path:'levelitems/bushline.png'},
+    {ix:18,name:'bushpath',path:'levelitems/bushpath.png'},
+    {ix:19,name:'cactus',path:'levelitems/cactus.png'},
+    {ix:20,name:'cobblepath',path:'levelitems/cobblepath.png'},
+    {ix:21,name:'fence',path:'levelitems/fence.png'},
+    {ix:22,name:'fenceside',path:'levelitems/fenceside.png'},
+    {ix:23,name:'flowercactus',path:'levelitems/flowercactus.png'},
+    {ix:24,name:'grass1',path:'levelitems/grass1.png'},
+    {ix:25,name:'grass2',path:'levelitems/grass2.png'},
+    {ix:26,name:'plant',path:'levelitems/plant.png'},
+    {ix:27,name:'palm1',path:'levelitems/palm1.png'},
+    {ix:28,name:'palm2',path:'levelitems/palm2.png'},
+    {ix:29,name:'rails',path:'levelitems/rails.png'},
+    {ix:30,name:'rock',path:'levelitems/rock.png'},
+    {ix:31,name:'sandwall',path:'levelitems/sandwall.png'},
+    {ix:32,name:'sandwall2',path:'levelitems/sandwall2.png'},
+    {ix:33,name:'shortgrass1',path:'levelitems/shortgrass1.png'},
+    {ix:34,name:'shortgrass2',path:'levelitems/shortgrass2.png'},
+    {ix:35,name:'smallcactus',path:'levelitems/smallcactus.png'},
+    {ix:36,name:'spike',path:'levelitems/spike.png'},
+    {ix:37,name:'stonealter',path:'levelitems/stonealter.png'},
+    {ix:38,name:'stonewall',path:'levelitems/stonewall.png'},
+    {ix:39,name:'torch',path:'levelitems/torch.png'},
+    {ix:40,name:'woodbridge',path:'levelitems/woodbridge.png'},
 ];
 
 class Tri1 extends Sprite{
@@ -415,6 +444,7 @@ class Bee extends Sprite{
 		this.damage = 2;
 		this.speed = 4;
 		this.stinging = false;
+		this.cooldown = 100;
 	}
 	attack(){
 		if(this.mode == 'nice'){
@@ -426,9 +456,16 @@ class Bee extends Sprite{
 			pos.x += this.d * this.speed;
 			pos.y += 5 * Math.cos(pos.x/20);
 			this.position = pos;
-			if (Vector.distance(player.pos.x,player.pos.y,this.pos.x,this.pos.y) < 200){
+			this.cooldown--;
+			if (this.cooldown <= 0 && Vector.distance(player.pos.x,player.pos.y,this.pos.x,this.pos.y) < 200){
 				this.mode = 'evil';
 				this.animation.play('fly-evil');
+				setTimeout(()=>{
+					this.mode = 'nice';
+					this.cooldown = 1000;
+					this.animation.play('fly-nice');
+					this.direction = this.d;
+				},10*1000);
 			}
 		}else{
 			let pos = this.pos.clone();
@@ -443,12 +480,12 @@ class Bee extends Sprite{
 			if(this.touches(player)){
 				if(!this.stinging) player.health -= this.damage;
 				this.stinging = true;
-				this.animation.play('sting').then(e=>{
+				this.animation?.play('sting').then(e=>{
 					if(!e) return;
 					this.stinging = false;
 				});
 			} else if(!this.stinging){
-				this.animation.play('fly-evil');
+				this.animation?.play('fly-evil');
 				this.position = pos;
 			}
 		}
@@ -457,6 +494,209 @@ class Bee extends Sprite{
 class BigRock extends Sprite{
 	constructor(x,y){
 		super('levelitems/bigrock.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class BigSandWall extends Sprite{
+	constructor(x,y){
+		super('levelitems/bigsandwall.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class BigSpike extends Sprite{
+	constructor(x,y){
+		super('levelitems/bigspike.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class BigTree extends Sprite{
+	constructor(x,y){
+		super('levelitems/bigtree.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class Bush1 extends Sprite{
+	constructor(x,y){
+		super('levelitems/bush1.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class Bush2 extends Sprite{
+	constructor(x,y){
+		super('levelitems/bush2.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class Bushline extends Sprite{
+	constructor(x,y){
+		super('levelitems/bushline.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class bushpath extends Sprite{
+	constructor(x,y){
+		super('levelitems/bushpath.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class cactus extends Sprite{
+	constructor(x,y){
+		super('levelitems/cactus.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class cobblepath extends Sprite{
+	constructor(x,y){
+		super('levelitems/cobblepath.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class fence extends Sprite{
+	constructor(x,y){
+		super('levelitems/fence.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class fenceside extends Sprite{
+	constructor(x,y){
+		super('levelitems/fenceside.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class flowercactus extends Sprite{
+	constructor(x,y){
+		super('levelitems/flowercactus.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class grass1 extends Sprite{
+	constructor(x,y){
+		super('levelitems/grass1.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class grass2 extends Sprite{
+	constructor(x,y){
+		super('levelitems/grass2.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class plant extends Sprite{
+	constructor(x,y){
+		super('levelitems/plant.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class palm1 extends Sprite{
+	constructor(x,y){
+		super('levelitems/palm1.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class palm2 extends Sprite{
+	constructor(x,y){
+		super('levelitems/palm2.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class rails extends Sprite{
+	constructor(x,y){
+		super('levelitems/rails.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class rock extends Sprite{
+	constructor(x,y){
+		super('levelitems/rock.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class sandwall extends Sprite{
+	constructor(x,y){
+		super('levelitems/sandwall.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class sandwall2 extends Sprite{
+	constructor(x,y){
+		super('levelitems/sandwall2.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class shortgrass1 extends Sprite{
+	constructor(x,y){
+		super('levelitems/shortgrass1.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class shortgrass2 extends Sprite{
+	constructor(x,y){
+		super('levelitems/shortgrass2.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class smallcactus extends Sprite{
+	constructor(x,y){
+		super('levelitems/smallcactus.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class spike extends Sprite{
+	constructor(x,y){
+		super('levelitems/spike.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class stonealter extends Sprite{
+	constructor(x,y){
+		super('levelitems/stonealter.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class stonewall extends Sprite{
+	constructor(x,y){
+		super('levelitems/stonewall.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class torch extends Sprite{
+	constructor(x,y){
+		super('levelitems/torch.png');
+		this.position = new Vector(x,y);
+		sprites.push(this);
+	}
+}
+class woodbridge extends Sprite{
+	constructor(x,y){
+		super('levelitems/woodbridge.png');
 		this.position = new Vector(x,y);
 		sprites.push(this);
 	}
