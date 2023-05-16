@@ -153,6 +153,33 @@
 				}
 			}
 		}
+		class TurnBullet extends Sprite{
+			constructor(x,y,d,path='bullet.png'){
+				super(path);
+				this.position = new Vector(x,y);
+				this.direction = d;
+				this.speed = 3.5;
+				this.parr = bullets;
+				this.rot = 1;
+			}
+			fly(){
+				let pos = this.pos;
+				pos.x += this.speed * Math.cos(this.dir*Math.PI/180);
+				pos.y += this.speed * Math.sin(this.dir*Math.PI/180);
+				this.direction = this.dir + this.rot;
+				this.position = pos;
+				if(pos.y > background.h/2 || pos.y < -background.h/2 || pos.x < -background.w/2 || pos.x > background.w/2){
+					this.parr.splice(this.parr.indexOf(this),1);
+				}
+				if(this.touches(player)){
+					this.parr.splice(this.parr.indexOf(this),1);
+					player.health--;
+				}
+				if(this.isTouchingLines()){
+					this.parr.splice(this.parr.indexOf(this),1);
+				}
+			}
+		}
 
 		function setupTools(){
 			show(obj('#edit'));
@@ -390,13 +417,13 @@
 				//red laser (straight)
 				if (this.cooldown == 0) {
 					this.cooldown = 30;
-					if (this.mode == 0) {
+					if (this.mode < 5) {
 						let b1 = new Bullet(pos.x, pos.y, d, 'enemies/LaserRed.png');
                         let b2 = new Bullet(pos.x, pos.y, d, 'enemies/LaserRed.png');
 						b1.speed = 6;
 						b2.speed = -1;
-						this.mode = 1;
-					bullets.push(b1, b2);
+						this.mode += 1;
+						bullets.push(b1, b2);
 					} else {
 						let b1 = new Bullet(pos.x, pos.y, d + 15, 'enemies/LaserRed.png');
 						let b2 = new Bullet(pos.x, pos.y, d - 15, 'enemies/LaserRed.png');
@@ -406,9 +433,16 @@
 						b2.speed = 6;
                         b3.speed = -1;
                         b4.speed = -1;
-						this.mode = 0;
+						this.mode += 1;
                         bullets.push(b1, b2, b3, b4);
-						}
+                        if(this.mode > 10){
+                        	let t1 = new TurnBullet(pos.x, pos.y, d + 15, 'enemies/LaserBlue.png');
+							let t2 = new TurnBullet(pos.x, pos.y, d - 15, 'enemies/LaserBlue.png');
+							t2.rot = -1;
+							bullets.push(t1,t2);
+                        	this.mode = 0;
+                        }
+					}
                 }
             }
         }
@@ -612,6 +646,9 @@
 						this.position = pos;
 					}
 				}
+			}
+			drop(){
+				Inventory.money(2,'c')
 			}
 		}
 
