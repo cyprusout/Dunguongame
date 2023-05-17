@@ -20,7 +20,8 @@
 		}
 		.selected{
 			border: 2px solid red;
-		}		#edit{
+		}
+		#edit{
 			visibility: hidden;
 		}
 	</style>
@@ -39,9 +40,10 @@
 			<button id=set_map>Choose Map</button>
 			<button id=spawn_point>Set Spawn Point</button>
 			<button id=draw_line>Draw Collision Line</button>
+			<button id=draw_bline>Draw Walk Barrier</button>
 			<button id=hitbox_tog>Toggle Hitboxes</button>
 			<button id=save>Download Level</button>
-			<input title="Sprite Spawn Delay" id=time_delay type=checkbox>
+			Spawn Delay:<input title="Sprite Spawn Delay" id=time_delay type=checkbox>
 			<br>
 		</div>
 	</game>
@@ -62,7 +64,7 @@
 		var enemies = [];
 		var sprites = [];
 		var my_bullets = [];
-		var lines = [];
+		var lines = [],blines = [],line_type='n';
 		var GAME = 0;
 		var edit_sprite = null;
 		var background;
@@ -70,6 +72,7 @@
 		var weapon_action = '';
 		var weapon_dist = 0;
 		var editor_actions = [];
+		var wait_spawns = [];
 
 		var level_data = {spts:[],map:'sandmap',sx:0,sy:0,lines:[]};
 		var equips = [useSpear,useMace,useLongSword,useKnives,useSword,useAxe];
@@ -114,7 +117,11 @@
 		function loadLines(lns=[]){
 			lines = [];
 			for(let l of lns){
-				lines.push(new Line(l.x1,l.y1,l.x2,l.y2));
+				if(l.t == 'bl'){
+					blines.push(new Line(l.x1,l.y1,l.x2,l.y2));
+				} else {
+					lines.push(new Line(l.x1,l.y1,l.x2,l.y2));
+				}
 			}
 		}
 
@@ -176,16 +183,25 @@
 			}
 			return false;
 		}
-
+		Sprite.prototype.isTouchingBlines = function(){
+			for(let bl of blines){
+				if(this.touches(bl)){
+					return true;
+				}
+			}
+			return this.isTouchingLines();
+		}
 
 		function spawnSprites(sprts,EDITOR=false){
 			enemies = [];
 			sprites = [];
 			bullets = [];
 			my_bullets = [];
+			for(let tm of wait_spawns){clearTimeout(tm)}
+			wait_spawns = [];
 			for(let sprite of sprts){
 				let w = +sprite.w;
-				setTimeout(()=>{
+				let tm = setTimeout(()=>{
 					let ns = eval(`new ${classes[sprite.i]}`);
 					ns.position = new Vector(sprite.x,sprite.y);
 					if(sprite.spec){
@@ -195,6 +211,7 @@
 						ns.direction = sprite.d;
 					}
 				},w*1000);
+				wait_spawns.push(tm);
 			}
 		}
 
@@ -251,6 +268,7 @@
 						o_pos = new Vector(mouse.pos.x-canvas.width/2+player.pos.x,mouse.pos.y-canvas.height/2+player.pos.y);
 					} else {
 						ctx.beginPath();
+						ctx.strokeStyle = line_type=='n'?'black':'blue';
 						ctx.moveTo(o_pos.x,o_pos.y);
 						ctx.lineTo(mouse.pos.x-canvas.width/2+player.pos.x,mouse.pos.y-canvas.height/2+player.pos.y);
 						ctx.stroke();
@@ -260,8 +278,13 @@
 			if(!mouse.down){
 				if(DRAW_MODE == 1){
 					if(o_pos){
-						lines.push(new Line(o_pos.x,o_pos.y,mouse.pos.x-canvas.width/2+player.pos.x,mouse.pos.y-canvas.height/2+player.pos.y));
-						editor_actions.push('line');
+						if(line_type == 'n'){
+							lines.push(new Line(o_pos.x,o_pos.y,mouse.pos.x-canvas.width/2+player.pos.x,mouse.pos.y-canvas.height/2+player.pos.y));
+							editor_actions.push('line');
+						} else if(line_type == 'b'){
+							blines.push(new Line(o_pos.x,o_pos.y,mouse.pos.x-canvas.width/2+player.pos.x,mouse.pos.y-canvas.height/2+player.pos.y));
+							editor_actions.push('bline');
+						}
 						o_pos = null;
 					}
 				}
@@ -297,6 +320,13 @@
 			}
 			obj('#draw_line').on('click',e=>{
 				if(sel_sprite) sel_sprite.el.classList.remove('selected');
+				line_type = 'n';
+				sel_sprite = null;
+				DRAW_MODE = 1;
+			});
+			obj('#draw_bline').on('click',e=>{
+				if(sel_sprite) sel_sprite.el.classList.remove('selected');
+				line_type = 'b';
 				sel_sprite = null;
 				DRAW_MODE = 1;
 			});
@@ -315,6 +345,8 @@
 				} else if (a == 'sprite'){
 					sprites.pop();
 					level_data.spts.pop();
+				} else if (a == 'bline'){
+					blines.pop();
 				}
 			}
 		}
@@ -325,6 +357,11 @@
 				let p1 = l.getPosA();
 				let p2 = l.getPosB();
 				level_data.lines.push({x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y});
+			}
+			for(let bl of blines){
+				let p1 = bl.getPosA();
+				let p2 = bl.getPosB();
+				level_data.lines.push({x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,t:'bl'});
 			}
 		}
 
@@ -360,11 +397,11 @@
 			let op = player.pos.clone();
 
 			player.position = new Vector(pos.x,op.y);
-			if(player.isTouchingLines()) pos.x = op.x;
+			if(player.isTouchingBlines()) pos.x = op.x;
 
 
 			player.position = new Vector(op.x,pos.y);
-			if(player.isTouchingLines()) pos.y = op.y;
+			if(player.isTouchingBlines()) pos.y = op.y;
 
 			if(player.health > 0){
 				player.position = pos;
@@ -672,6 +709,7 @@
 			background.draw();
 			inputHandle();
 			player.draw();
+			weapon.draw();
 			player.showHealth();
 			if(player.health <= 0){
 				player.health = 0;
@@ -684,11 +722,6 @@
 					b.draw();
 				}
 			}
-			if(EDITOR || Hitbox.show){
-				for(let l of lines){
-					l.draw();
-				}
-			}
 			for(let e of enemies){
 				if(!EDITOR && player.health > 0){
 					e.attack();
@@ -696,9 +729,16 @@
 				}
 				e.draw();
 			}
-			weapon.draw();
 			if(mouse.down && !EDITOR && player.health > 0){
 				attack();
+			}
+			if(EDITOR || Hitbox.show){
+				for(let l of lines){
+					l.draw();
+				}
+				for(let bl of blines){
+					bl.draw('cyan');
+				}
 			}
 			ctx.restore();
 			Inventory.draw();

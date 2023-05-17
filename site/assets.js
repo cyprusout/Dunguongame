@@ -63,7 +63,7 @@ class Tri1 extends Sprite{
 		pos.x += this.speed * Math.cos(d*Math.PI/180);
 		pos.y += this.speed * Math.sin(d*Math.PI/180);
 		this.position = pos;
-		if(this.touches(background) || this.isTouchingLines()){
+		if(this.touches(background) || this.isTouchingBlines()){
 			this.md *= -1;
 		}
 		this.cooldown--;
@@ -254,7 +254,7 @@ class LaserBull extends Sprite{
         pos.x += this.speed * Math.cos(d * Math.PI / 180);
         pos.y += this.speed * Math.sin(d * Math.PI / 180);
         this.position = pos;
-        if (this.touches(background) || this.isTouchingLines()) {
+        if (this.touches(background) || this.isTouchingBlines()) {
             this.md *= -1;
         }
         this.cooldown--;
