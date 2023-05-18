@@ -151,7 +151,39 @@
 				}
 			}
 		}
-
+        class TurnBullet extends Sprite {
+            constructor(x, y, d, path = 'bullet.png') {
+                super(path);
+                this.position = new Vector(x, y);
+                this.direction = d;
+                this.speed = 3.5;
+                this.parr = bullets;
+				this.rot = 1;
+				setTimeout(e => {
+					let ix = this.parr.indexOf(this)
+					if (ix != -1) {
+						this.parr.splice(ix, 1);
+                    }
+                },10*1000); 
+            }
+            fly() {
+                let pos = this.pos;
+                pos.x += this.speed * Math.cos(this.dir * Math.PI / 180);
+                pos.y += this.speed * Math.sin(this.dir * Math.PI / 180);
+                this.direction = this.dir + this.rot;
+                this.position = pos;
+                if (pos.y > background.h / 2 || pos.y < -background.h / 2 || pos.x < -background.w / 2 || pos.x > background.w / 2) {
+                    this.parr.splice(this.parr.indexOf(this), 1);
+                }
+                if (this.touches(player)) {
+                    this.parr.splice(this.parr.indexOf(this), 1);
+                    player.health--;
+                }
+                if (this.isTouchingLines()) {
+                    this.parr.splice(this.parr.indexOf(this), 1);
+                }
+            }
+        }
 		function setupTools(){
 			show(obj('#edit'));
 			for(let sprite of imgs){

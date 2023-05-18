@@ -42,7 +42,8 @@ var imgs = [
     {ix:40,name:'woodbridge',path:'levelitems/woodbridge.png'},
     {ix:41,name:'house',path:'levelitems/house/house.png'},
     {ix:42,name:'houseflip',path:'levelitems/house/houseflip.png'},
-    {ix:43,name:'church',path:'structures/church.png'},
+	{ix: 43, name: 'church', path: 'structures/church.png' },
+	{ix: 44, name: 'WaterPuddle', path: 'enemies/waterpuddle/0.png' },
 ];
 
 class Tri1 extends Sprite{
@@ -167,6 +168,44 @@ class WaterBlob extends Sprite{
 	drop(){
 		Inventory.money(10,'c');
 		new Gem(this.pos.x+random(-10,10),this.pos.y+random(-10,10),'bg');
+	}
+}
+class WaterPuddle extends Sprite {
+	constructor(x, y) {
+		super('enemies/waterpuddle/0.png');
+		this.speed = .5;
+		this.position = new Vector(x, y);
+		this.cooldown = 60;
+		this.maxHealth = 35;
+		this.health = this.maxHealth;
+		this.md = 80 * ((Math.random() > .5) ? -1 : 1);
+		this.addAnimation('enemies/waterpuddle/water.anims').then(() => {
+			this.animation.play('idle', true);
+		});
+		enemies.push(this);
+	}
+	attack() {
+		let x = this.pos.x;
+		let y = this.pos.y;
+		let d = Vector.getDir(x - player.pos.x, y - player.pos.y);
+		// this.direction = d;
+		let pos = this.pos;
+		// pos.x += this.speed * Math.cos(d*Math.PI/180);
+		// pos.y += this.speed * Math.sin(d*Math.PI/180);
+		// this.position = pos;
+		this.cooldown--;
+		if (this.cooldown == 0) {
+			this.cooldown = 120;
+			var bulletcount = random(6, 12)
+			for (let i = 0; i < 360; i += 360 / bulletcount) {
+				let nb = new TurnBullet(pos.x, pos.y, i, 'enemies/waterpuddle/waterturnbullet.png');
+				bullets.push(nb);
+			}
+		}
+	}
+	drop() {
+		Inventory.money(10, 'c');
+		new Gem(this.pos.x + random(-10, 10), this.pos.y + random(-10, 10), 'bg');
 	}
 }
 class Tree extends Sprite{
