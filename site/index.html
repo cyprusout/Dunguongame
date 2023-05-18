@@ -73,6 +73,7 @@
 		var weapon_dist = 0;
 		var editor_actions = [];
 		var wait_spawns = [];
+		var structures = [];
 
 		var level_data = {spts:[],map:'sandmap',sx:0,sy:0,lines:[]};
 		var equips = [useSpear,useMace,useLongSword,useKnives,useSword,useAxe];
@@ -707,6 +708,7 @@
 			ctx.save();
 			ctx.translate(-player.pos.x+canvas.width/2,-player.pos.y+canvas.height/2);
 			background.draw();
+			for(let s of structures) s.draw();
 			inputHandle();
 			player.draw();
 			weapon.draw();
