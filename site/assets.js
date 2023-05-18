@@ -42,6 +42,7 @@ var imgs = [
     {ix:40,name:'woodbridge',path:'levelitems/woodbridge.png'},
     {ix:41,name:'house',path:'levelitems/house/house.png'},
     {ix:42,name:'houseflip',path:'levelitems/house/houseflip.png'},
+    {ix:43,name:'church',path:'structures/church.png'},
 ];
 
 class Tri1 extends Sprite{
@@ -710,7 +711,6 @@ class house extends Sprite{
 	constructor(x,y){
 		super('levelitems/house/house.png');
 		this.position = new Vector(x,y);
-		lines.push(this.lines);
 		sprites.push(this);
 	}
 }
@@ -718,7 +718,14 @@ class houseflip extends Sprite{
 	constructor(x,y){
 		super('levelitems/house/houseflip.png');
 		this.position = new Vector(x,y);
-		lines.push(this.lines);
 		sprites.push(this);
+	}
+}
+class church extends Sprite{
+	constructor(x,y){
+		super('structures/church.png');
+		this.position = new Vector(x,y);
+		lines.push(this.lines);
+		structures.push(this);
 	}
 }
