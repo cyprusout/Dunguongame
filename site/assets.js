@@ -767,7 +767,6 @@ class church extends Sprite{
 	constructor(x,y){
 		super('structures/church.png');
 		this.position = new Vector(x,y);
-		lines.push(this.lines);
 		structures.push(this);
 	}
 }
