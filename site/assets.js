@@ -182,6 +182,7 @@ class WaterPuddle extends Sprite {
 		this.addAnimation('enemies/waterpuddle/water.anims').then(() => {
 			this.animation.play('idle', true);
 		});
+		this.spindir = 1;
 		enemies.push(this);
 	}
 	attack() {
@@ -196,9 +197,11 @@ class WaterPuddle extends Sprite {
 		this.cooldown--;
 		if (this.cooldown == 0) {
 			this.cooldown = 120;
+			this.spindir *= -1;
 			var bulletcount = random(6, 12)
 			for (let i = 0; i < 360; i += 360 / bulletcount) {
 				let nb = new TurnBullet(pos.x, pos.y, i, 'enemies/waterpuddle/waterturnbullet.png');
+				nb.rot = this.spindir;
 				bullets.push(nb);
 			}
 		}
