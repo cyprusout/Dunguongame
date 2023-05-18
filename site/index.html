@@ -185,7 +185,7 @@
             }
         }
 
-        
+
 		function setupTools(){
 			show(obj('#edit'));
 			for(let sprite of imgs){
@@ -230,6 +230,7 @@
 		function spawnSprites(sprts,EDITOR=false){
 			enemies = [];
 			sprites = [];
+			structures = [];
 			bullets = [];
 			my_bullets = [];
 			for(let tm of wait_spawns){clearTimeout(tm)}
