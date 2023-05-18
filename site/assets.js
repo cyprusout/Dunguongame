@@ -42,8 +42,9 @@ var imgs = [
     {ix:40,name:'woodbridge',path:'levelitems/woodbridge.png'},
     {ix:41,name:'house',path:'levelitems/house/house.png'},
     {ix:42,name:'houseflip',path:'levelitems/house/houseflip.png'},
-	{ix: 43, name: 'church', path: 'structures/church.png' },
-	{ix: 44, name: 'WaterPuddle', path: 'enemies/waterpuddle/0.png' },
+	{ix:43,name:'church',path:'structures/church.png'},
+	{ix:44,name:'WaterPuddle',path:'enemies/waterpuddle/0.png'},
+	{ix:45,name:'inside',path:'structures/inside.png'},
 ];
 
 class Tri1 extends Sprite{
@@ -168,47 +169,6 @@ class WaterBlob extends Sprite{
 	drop(){
 		Inventory.money(10,'c');
 		new Gem(this.pos.x+random(-10,10),this.pos.y+random(-10,10),'bg');
-	}
-}
-class WaterPuddle extends Sprite {
-	constructor(x, y) {
-		super('enemies/waterpuddle/0.png');
-		this.speed = .5;
-		this.position = new Vector(x, y);
-		this.cooldown = 60;
-		this.maxHealth = 35;
-		this.health = this.maxHealth;
-		this.md = 80 * ((Math.random() > .5) ? -1 : 1);
-		this.addAnimation('enemies/waterpuddle/water.anims').then(() => {
-			this.animation.play('idle', true);
-		});
-		this.spindir = 1;
-		enemies.push(this);
-	}
-	attack() {
-		let x = this.pos.x;
-		let y = this.pos.y;
-		let d = Vector.getDir(x - player.pos.x, y - player.pos.y);
-		// this.direction = d;
-		let pos = this.pos;
-		// pos.x += this.speed * Math.cos(d*Math.PI/180);
-		// pos.y += this.speed * Math.sin(d*Math.PI/180);
-		// this.position = pos;
-		this.cooldown--;
-		if (this.cooldown == 0) {
-			this.cooldown = 120;
-			this.spindir *= -1;
-			var bulletcount = random(6, 12)
-			for (let i = 0; i < 360; i += 360 / bulletcount) {
-				let nb = new TurnBullet(pos.x, pos.y, i, 'enemies/waterpuddle/waterturnbullet.png');
-				nb.rot = this.spindir;
-				bullets.push(nb);
-			}
-		}
-	}
-	drop() {
-		Inventory.money(10, 'c');
-		new Gem(this.pos.x + random(-10, 10), this.pos.y + random(-10, 10), 'bg');
 	}
 }
 class Tree extends Sprite{
@@ -754,18 +714,87 @@ class house extends Sprite{
 		super('levelitems/house/house.png');
 		this.position = new Vector(x,y);
 		sprites.push(this);
+		this.addMovement(this.enter);
+		this.alpha = 1;
+	}
+	enter(){
+		let d = this.distanceTo(player);
+		if(d < this.w/2){
+			this.alpha = Math.max((this.alpha - .05),0);
+		} else {
+			this.alpha = Math.min((this.alpha + .05),1);
+		}
 	}
 }
 class houseflip extends Sprite{
 	constructor(x,y){
-		super('levelitems/house/houseflip.png');
+		super('levelitems/house/house.png');
 		this.position = new Vector(x,y);
 		sprites.push(this);
+		this.addMovement(this.enter);
+		this.alpha = 1;
+		this.transformX = -1;
+	}
+	enter(){
+		let d = this.distanceTo(player);
+		if(d < this.w/2){
+			this.alpha = Math.max((this.alpha - .05),0);
+		} else {
+			this.alpha = Math.min((this.alpha + .05),1);
+		}
 	}
 }
 class church extends Sprite{
 	constructor(x,y){
 		super('structures/church.png');
+		this.position = new Vector(x,y);
+		structures.push(this);
+	}
+}
+class WaterPuddle extends Sprite {
+	constructor(x, y) {
+		super('enemies/waterpuddle/0.png');
+		this.speed = .5;
+		this.position = new Vector(x, y);
+		this.cooldown = 60;
+		this.maxHealth = 35;
+		this.health = this.maxHealth;
+		this.md = 80 * ((Math.random() > .5) ? -1 : 1);
+		this.addAnimation('enemies/waterpuddle/water.anims').then(() => {
+			this.animation.play('idle', true);
+		});
+		this.spindir = 1;
+		enemies.push(this);
+	}
+	attack() {
+		let x = this.pos.x;
+		let y = this.pos.y;
+		let d = Vector.getDir(x - player.pos.x, y - player.pos.y);
+		// this.direction = d;
+		let pos = this.pos;
+		// pos.x += this.speed * Math.cos(d*Math.PI/180);
+		// pos.y += this.speed * Math.sin(d*Math.PI/180);
+		// this.position = pos;
+		this.cooldown--;
+		if (this.cooldown == 0) {
+			this.cooldown = 120;
+			this.spindir *= -1;
+			var bulletcount = random(6, 12)
+			for (let i = 0; i < 360; i += 360 / bulletcount) {
+				let nb = new TurnBullet(pos.x, pos.y, i, 'enemies/waterpuddle/waterturnbullet.png');
+				nb.rot = this.spindir;
+				bullets.push(nb);
+			}
+		}
+	}
+	drop() {
+		Inventory.money(10, 'c');
+		new Gem(this.pos.x + random(-10, 10), this.pos.y + random(-10, 10), 'bg');
+	}
+}
+class inside extends Sprite{
+	constructor(x,y){
+		super('structures/inside.png');
 		this.position = new Vector(x,y);
 		structures.push(this);
 	}

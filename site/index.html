@@ -43,6 +43,7 @@
 			<button id=draw_bline>Draw Walk Barrier</button>
 			<button id=hitbox_tog>Toggle Hitboxes</button>
 			<button id=save>Download Level</button>
+			<br>
 			Spawn Delay:<input title="Sprite Spawn Delay" id=time_delay type=checkbox>
 			<br>
 		</div>
@@ -93,6 +94,8 @@
 		mouse.start(canvas);
 		loadMap();
 		useSpear();
+
+		Touch.init(canvas);
 
 		const gamefont = new FontFace('gamefont', 'url(gui/font.ttf)');
 		gamefont.load().then((font) => {
