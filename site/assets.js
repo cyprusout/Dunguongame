@@ -45,6 +45,7 @@ var imgs = [
 	{ix:43,name:'church',path:'structures/church.png'},
 	{ix:44,name:'WaterPuddle',path:'enemies/waterpuddle/0.png'},
 	{ix:45,name:'inside',path:'structures/inside.png'},
+	{ix:46,name:'Demon',path:'enemies/Demon.png'},
 ];
 
 class Tri1 extends Sprite{
@@ -315,7 +316,7 @@ class SandWorm extends Sprite{
 		this.inHole = true;
 		this.cooldown = 300;
 		this.speed = 5;
-		this.maxHealth = 30;
+		this.maxHealth = 15;
 		this.health = this.maxHealth;
 		this.visible = false;
 		this.doDamage = false;
@@ -757,7 +758,7 @@ class WaterPuddle extends Sprite {
 		this.speed = .5;
 		this.position = new Vector(x, y);
 		this.cooldown = 60;
-		this.maxHealth = 35;
+		this.maxHealth = 20;
 		this.health = this.maxHealth;
 		this.md = 80 * ((Math.random() > .5) ? -1 : 1);
 		this.addAnimation('enemies/waterpuddle/water.anims').then(() => {
@@ -797,5 +798,33 @@ class inside extends Sprite{
 		super('structures/inside.png');
 		this.position = new Vector(x,y);
 		structures.push(this);
+	}
+}
+class Demon extends Sprite{
+	constructor(x,y){
+		super('enemies/Demon.png');
+		this.position = new Vector(x,y);
+		this.speed = 2;
+		this.maxHealth = 35;
+		this.health = this.maxHealth;
+		this.cooldown = 45;
+		this.a_dir = 0;
+		enemies.push(this);
+		audio.play('sfx/S2.mp3');
+	}
+	attack(){
+		let pos = this.pos;
+		this.cooldown--;
+		if(this.cooldown == 0){
+			let npos = Vector.getPointIn(Vector.rad(this.a_dir),50,pos.x,pos.y);
+			this.a_dir+=4;
+			this.cooldown = 6;
+			for(let i=0;i<360;i+=90){
+				let nb = new TurnBullet(npos.x,npos.y,i+this.a_dir,'enemies/plasmaball.png');
+				nb.rot = 4;
+				nb.speed = 13;
+				bullets.push(nb);
+			}
+		}
 	}
 }
