@@ -47,6 +47,7 @@ var imgs = [
 	{ix:45,name:'inside',path:'structures/inside.png'},
 	{ix:46,name:'Demon',path:'enemies/Demon.png'},
 	{ix:47,name:'Villager',path:'villager/00.png'},
+	{ix:48,name:'house2',path:'levelitems/house/house2.png'},
 ];
 
 class Tri1 extends Sprite{
@@ -849,3 +850,20 @@ class Villager extends Sprite{
 	}
 }
 
+class house2 extends Sprite {
+	constructor(x, y) {
+		super('levelitems/house/house2.png');
+		this.position = new Vector(x, y);
+		sprites.push(this);
+		this.addMovement(this.enter);
+		this.alpha = 1;
+	}
+	enter() {
+		let d = this.distanceTo(player);
+		if (d < this.w / 2) {
+			this.alpha = Math.max((this.alpha - .05), 0);
+		} else {
+			this.alpha = Math.min((this.alpha + .05), 1);
+		}
+	}
+}
