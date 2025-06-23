@@ -46,6 +46,7 @@ var imgs = [
 	{ix:44,name:'WaterPuddle',path:'enemies/waterpuddle/0.png'},
 	{ix:45,name:'inside',path:'structures/inside.png'},
 	{ix:46,name:'Demon',path:'enemies/Demon.png'},
+	{ix:47,name:'Villager',path:'villager/00.png'},
 ];
 
 class Tri1 extends Sprite{
@@ -800,6 +801,8 @@ class inside extends Sprite{
 		structures.push(this);
 	}
 }
+
+
 class Demon extends Sprite{
 	constructor(x,y){
 		super('enemies/Demon.png');
@@ -828,3 +831,21 @@ class Demon extends Sprite{
 		}
 	}
 }
+
+
+
+class Villager extends Sprite{
+	constructor(x,y){
+		super('villager/00.png');
+		this.position = new Vector(x,y);
+		this.speed = 2;
+		this.maxHealth = 35;
+		this.health = this.maxHealth;
+		this.a_dir = 0;
+		sprites.push(this);		
+		this.addAnimation('villager/villager.anims').then(() => {
+			this.animation.play('idle', true);
+		});
+	}
+}
+

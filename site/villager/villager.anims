@@ -1,0 +1,1 @@
+{"dirname":"villager","frames":[{"frames":[9,8],"name":"walkup","fps":"5"},{"frames":[10,7],"name":"walkdown","fps":"5"},{"frames":[3,1],"name":"walkside","fps":"5"},{"frames":[5,6],"name":"idle","fps":".7"}],"count":11}
