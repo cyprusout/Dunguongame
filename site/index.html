@@ -533,6 +533,23 @@
 				ctx.font = '20px gamefont';
 				ctx.fillStyle = '#ca9518';
 				ctx.fillText(MONEY.c + '', x + 30, y + 22);
+
+				const gemTypes = [
+					{ key: 'rg', color: '#ff4444', imgIndex: 1 }, // red gem
+					{ key: 'gg', color: '#44ff44', imgIndex: 2 }, // green gem
+					{ key: 'og', color: '#ffaa44', imgIndex: 3 }, // orange gem
+					{ key: 'bg', color: '#4488ff', imgIndex: 4 }  // blue gem
+				];
+				let gemX = x;
+				for (const gem of gemTypes) {
+					if (MONEY[gem.key] > 0) {
+						gemX -= 50;
+						ctx.drawImage(money_imgs[gem.imgIndex], gemX, y, 30, 30);
+						ctx.font = '20px gamefont';
+						ctx.fillStyle = gem.color;
+						ctx.fillText(MONEY[gem.key] + '', gemX + 30, y + 22);
+					}
+				}
 			}
 
 			function getBalance() {
