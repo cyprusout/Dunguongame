@@ -308,6 +308,7 @@
 						result.spec = t;
 					}
 				}
+				if(sel_sprite.p == 47)
 				level_data.spts.push(result);
 				editor_actions.push('sprite');
 			}
@@ -844,16 +845,22 @@
 
 		async function checkLoadMusic(level_name) {
 			if (level_name == 'sandroomspawn') {
+				audio.stopAll();
 				audio.play('sfx/desert.m4a', true, .3)
 			}
 			if (level_name == 'level0') {
 				audio.stopAll();
+				audio.play('sfx/drumbeat.m4a', true, .8)
 				// Music.loadSong('7rIovIsXE6kMn629b7kDig').then(song => { song.play() });
+			}
+			if (level_name == 'village'){
+				audio.stopAll();
+				audio.play('sfx/villagesong.m4a', true, .5);
 			}
 		}
 
 		async function loadLevel(level_name = 'sandroomspawn', v) {
-
+			console.log("Entering Room: "+level_name);
 			stopGame();
 			// await fadeOutCanvas();
 			let req = await fetch(`levels/${level_name}.json`);
