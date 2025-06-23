@@ -1,1 +1,1 @@
-{"dirname":"player.anims","frames":[],"count":2}
+{"dirname":"Player","frames":[{"frames":[0,1,2,1],"name":"walk","fps":"7"}],"count":5}
