@@ -724,7 +724,14 @@
 						if (videoElem.paused || videoElem.ended) return;
 						ctx.clearRect(0, 0, canvas.width, canvas.height);
 						ctx.drawImage(videoElem, 0, 0, canvas.width, canvas.height);
-						requestAnimationFrame(drawFrame);
+
+						if(keys.down('z')){
+							resolve();
+							videoElem.pause();
+							document.body.removeChild(videoElem);
+						} else {
+							requestAnimationFrame(drawFrame);
+						}
 					}
 					drawFrame();
 				};
@@ -759,7 +766,7 @@
 
 		function checkLoadMusic(level_name){
 			if(level_name == 'sandroomspawn'){
-				audio.play('sfx/desert.m4a')
+				audio.play('sfx/desert.m4a',true,.3)
 			}
 		}
 

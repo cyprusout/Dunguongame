@@ -813,7 +813,7 @@ class Demon extends Sprite{
 		this.cooldown = 45;
 		this.a_dir = 0;
 		enemies.push(this);
-		audio.play('sfx/S2.mp3');
+		// audio.play('sfx/S2.mp3');
 	}
 	attack(){
 		let pos = this.pos;
