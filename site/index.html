@@ -59,6 +59,8 @@
 		var player = new Sprite('Player/0.png');
 		player.addAnimation('Player/player.anims');
 		player.maxHealth = 30;
+		player.scale.x = .6;
+		player.scale.y = .6;
 		var DRAW_MODE = 0,o_pos = null;
 		var started = false;
 		var bullets = [];
@@ -705,17 +707,60 @@
 			}
 		}
 
-		function start(){
+		async function cutscene(video){
+			return new Promise((resolve, reject) => {
+				const videoElem = document.createElement('video');
+				videoElem.src = `cutscenes/${video}`;
+				videoElem.crossOrigin = "anonymous";
+				videoElem.autoplay = true;
+				videoElem.muted = false;
+				videoElem.playsInline = true;
+				videoElem.style.display = 'none';
+				document.body.appendChild(videoElem);
+
+				videoElem.oncanplay = () => {
+					videoElem.play();
+					function drawFrame() {
+						if (videoElem.paused || videoElem.ended) return;
+						ctx.clearRect(0, 0, canvas.width, canvas.height);
+						ctx.drawImage(videoElem, 0, 0, canvas.width, canvas.height);
+						requestAnimationFrame(drawFrame);
+					}
+					drawFrame();
+				};
+
+				videoElem.onended = () => {
+					document.body.removeChild(videoElem);
+					resolve();
+				};
+
+				videoElem.onerror = (e) => {
+					document.body.removeChild(videoElem);
+					reject(e);
+				};
+			});
+		}
+
+		async function start(){
 			if(!started){
 				let lv_name = location.href.split('level=')[1];
 				if(EDITOR) EDITOR_EVENTS();
 				player.health = player.maxHealth;
+				if(!EDITOR) canvas.requestFullscreen();
+				if(!EDITOR) await cutscene('load1.mp4');
 				loadLevel(lv_name);
 				if(EDITOR){
 					setupTools();
 				}
+
 			}
 			if(!FULLSCREEN && !EDITOR) canvas.requestFullscreen();
+		}
+
+		function checkLoadMusic(level_name){
+			if(level_name == 'sandroomspawn'){
+				audio.play('sfx/desert.m4a')
+			}
 		}
 
 		async function loadLevel(level_name='sandroomspawn',v){
@@ -723,6 +768,7 @@
 			let req = await fetch(`levels/${level_name}.json`);
 			level_data = await req.json();
 			await loadMap(level_data.map);
+			checkLoadMusic(level_name);
 			spawnSprites(level_data.spts,EDITOR);
 			loadLines(level_data.lines);
 			started = true;
@@ -791,5 +837,6 @@
 			}
 		}
 	</script>
+	<script src="music.js"></script>
 </body>
 </html>
