@@ -105,7 +105,9 @@
 		loadMap();
 		useSpear();
 
-		Touch.init(canvas);
+		Touch.init(data=>{
+			start();
+		});
 
 		const gamefont = new FontFace('gamefont', 'url(gui/font.ttf)');
 		gamefont.load().then((font) => {
