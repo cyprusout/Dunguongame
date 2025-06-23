@@ -826,6 +826,7 @@
 
 		async function start() {
 			if (!started) {
+				started = true;
 				let lv_name = location.href.split('level=')[1];
 				if (EDITOR) EDITOR_EVENTS();
 				player.health = player.maxHealth;
