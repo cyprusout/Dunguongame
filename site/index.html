@@ -733,7 +733,7 @@
 						ctx.clearRect(0, 0, canvas.width, canvas.height);
 						ctx.drawImage(videoElem, 0, 0, canvas.width, canvas.height);
 						ctx.font = '18px gamefont';
-						ctx.fillText('Click Z to skip Cutscene',canvas.width/2, canvas.height-20);
+						ctx.fillText('Click Z to skip Cutscene', canvas.width / 2, canvas.height - 20);
 
 						if (keys.down('z')) {
 							resolve();
@@ -759,15 +759,64 @@
 			});
 		}
 
+		let GLOBAL_FADE = () => { };
+
+		async function fadeOutCanvas(duration = 1000, runLoop = true) {
+			return new Promise(resolve => {
+				const steps = 30;
+				let currentStep = 0;
+				function fade() {
+					if (currentStep < steps) {
+						ctx.save();
+						ctx.globalAlpha = currentStep / steps;
+						ctx.fillStyle = 'black';
+						ctx.fillRect(-2, -2, canvas.width + 4, canvas.height + 4);
+						ctx.restore();
+						currentStep++;
+						if (runLoop) requestAnimationFrame(fade, duration / steps);
+					} else {
+						resolve();
+					}
+				}
+				GLOBAL_FADE = fade;
+				if (runLoop) fade();
+			});
+		}
+
+		async function fadeInCanvas(duration = 1000) {
+			return new Promise(resolve => {
+				const steps = 30;
+				let currentStep = steps;
+				function fade() {
+					if (currentStep > 0) {
+						// setTimeout(fade, duration / steps);
+						ctx.save();
+						ctx.globalAlpha = currentStep / steps;
+						ctx.fillStyle = 'black';
+						ctx.fillRect(-2, -2, canvas.width + 4, canvas.height + 4);
+						ctx.restore();
+						currentStep--;
+					} else {
+						resolve();
+					}
+				}
+				GLOBAL_FADE = fade;
+			});
+		}
+
 		async function start() {
 			if (!started) {
 				let lv_name = location.href.split('level=')[1];
 				if (EDITOR) EDITOR_EVENTS();
 				player.health = player.maxHealth;
-				if (!EDITOR) canvas.requestFullscreen();
-				if (!EDITOR) await cutscene('load1.mp4');
+				if (!EDITOR) {
+					canvas.requestFullscreen();
+					await cutscene('load1.mp4');
+					await fadeOutCanvas();
+				}
 				Music.loadSong();
 				loadLevel(lv_name);
+				await fadeInCanvas();
 				if (EDITOR) {
 					setupTools();
 				}
@@ -787,7 +836,9 @@
 		}
 
 		async function loadLevel(level_name = 'sandroomspawn', v) {
+
 			stopGame();
+			// await fadeOutCanvas();
 			let req = await fetch(`levels/${level_name}.json`);
 			level_data = await req.json();
 			await loadMap(level_data.map);
@@ -801,6 +852,8 @@
 			} else {
 				player.position = new Vector(level_data.sx, level_data.sy);
 			}
+
+			// await fadeInCanvas();
 			// if(!EDITOR && !FULLSCREEN) canvas.requestFullscreen();
 		}
 
@@ -858,6 +911,8 @@
 				edit_sprite.draw();
 				ctx.globalAlpha = 1;
 			}
+
+			GLOBAL_FADE();
 		}
 	</script>
 	<script src="music.js"></script>
