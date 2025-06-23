@@ -1,27 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Epic Dungeon Game</title>
 	<link rel="icon" type="image/x-icon" href="icon.png">
 	<style>
-		canvas{
-			background-color:black;
+		canvas {
+			background-color: black;
 		}
-		game{
+
+		game {
 			display: flex;
 		}
-		div > img{
+
+		div>img {
 			box-sizing: border-box;
 			border: 0;
 			max-height: 50px;
 			max-width: 50px;
 		}
-		.selected{
+
+		.selected {
 			border: 2px solid red;
 		}
-		#edit{
+
+		#edit {
 			visibility: hidden;
 		}
 	</style>
@@ -31,7 +36,9 @@
 	<script src="input.js"></script>
 	<script src="audio.js"></script>
 	<script src="assets.js"></script>
+	<script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
 </head>
+
 <body>
 	<div style="font-family: PressStart;"> </div>
 	<game>
@@ -47,6 +54,7 @@
 			Spawn Delay:<input title="Sprite Spawn Delay" id=time_delay type=checkbox>
 			<br>
 		</div>
+		<music></music>
 	</game>
 	<script>
 		const canvas = obj('canvas');
@@ -55,19 +63,19 @@
 		Hitbox.show = false;
 
 		var EDITOR = location.href.includes('editor');
-		var sel_sprite=null;
+		var sel_sprite = null;
 		var player = new Sprite('Player/0.png');
 		player.addAnimation('Player/player.anims');
 		player.maxHealth = 30;
 		player.scale.x = .6;
 		player.scale.y = .6;
-		var DRAW_MODE = 0,o_pos = null;
+		var DRAW_MODE = 0, o_pos = null;
 		var started = false;
 		var bullets = [];
 		var enemies = [];
 		var sprites = [];
 		var my_bullets = [];
-		var lines = [],blines = [],line_type='n';
+		var lines = [], blines = [], line_type = 'n';
 		var GAME = 0;
 		var edit_sprite = null;
 		var background;
@@ -78,17 +86,17 @@
 		var wait_spawns = [];
 		var structures = [];
 
-		var level_data = {spts:[],map:'sandmap',sx:0,sy:0,lines:[]};
-		var equips = [useSpear,useMace,useLongSword,useKnives,useSword,useAxe];
+		var level_data = { spts: [], map: 'sandmap', sx: 0, sy: 0, lines: [] };
+		var equips = [useSpear, useMace, useLongSword, useKnives, useSword, useAxe];
 		var weapon_ix = 0;
 
-		var classes = imgs.map(e=>e.name);
+		var classes = imgs.map(e => e.name);
 
-		document.on('keydown',e=>{
-			if(e.key == ' '){
+		document.on('keydown', e => {
+			if (e.key == ' ') {
 				start();
 			}
-			if(e.key == '`'){
+			if (e.key == '`') {
 				useOmegaSword();
 			}
 		});
@@ -101,106 +109,106 @@
 
 		const gamefont = new FontFace('gamefont', 'url(gui/font.ttf)');
 		gamefont.load().then((font) => {
-		  document.fonts.add(font);
-		  titleScreen();
+			document.fonts.add(font);
+			titleScreen();
 		});
 
-		function titleScreen(){
-			ctx.clearRect(-2,-2,canvas.width+2,canvas.height+2);
+		function titleScreen() {
+			ctx.clearRect(-2, -2, canvas.width + 2, canvas.height + 2);
 			ctx.fillStyle = 'white';
 			ctx.textAlign = 'center';
 			ctx.font = '40px gamefont';
-			ctx.fillText('Press Space to Start',canvas.width/2,canvas.height/2);
+			ctx.fillText('Press Space to Start', canvas.width / 2, canvas.height / 2);
 			ctx.fill();
 		}
 
-		function loadMap(name='sandmap'){
-			return new Promise((res,rej)=>{
-				background = new Sprite(`maprooms/${name}.png`,res);
-				background.position = new Vector(0,0);
+		function loadMap(name = 'sandmap') {
+			return new Promise((res, rej) => {
+				background = new Sprite(`maprooms/${name}.png`, res);
+				background.position = new Vector(0, 0);
 			})
 		}
-		function loadLines(lns=[]){
+		function loadLines(lns = []) {
 			lines = [];
-			for(let l of lns){
-				if(l.t == 'bl'){
-					blines.push(new Line(l.x1,l.y1,l.x2,l.y2));
+			for (let l of lns) {
+				if (l.t == 'bl') {
+					blines.push(new Line(l.x1, l.y1, l.x2, l.y2));
 				} else {
-					lines.push(new Line(l.x1,l.y1,l.x2,l.y2));
+					lines.push(new Line(l.x1, l.y1, l.x2, l.y2));
 				}
 			}
 		}
 
-		class Bullet extends Sprite{
-			constructor(x,y,d,path='bullet.png'){
+		class Bullet extends Sprite {
+			constructor(x, y, d, path = 'bullet.png') {
 				super(path);
-				this.position = new Vector(x,y);
+				this.position = new Vector(x, y);
 				this.direction = d;
 				this.speed = 3.5;
 				this.parr = bullets;
 			}
-			fly(){
+			fly() {
 				let pos = this.pos;
-				pos.x += this.speed * Math.cos(this.dir*Math.PI/180);
-				pos.y += this.speed * Math.sin(this.dir*Math.PI/180);
+				pos.x += this.speed * Math.cos(this.dir * Math.PI / 180);
+				pos.y += this.speed * Math.sin(this.dir * Math.PI / 180);
 				this.position = pos;
-				if(pos.y > background.h/2 || pos.y < -background.h/2 || pos.x < -background.w/2 || pos.x > background.w/2){
-					this.parr.splice(this.parr.indexOf(this),1);
+				if (pos.y > background.h / 2 || pos.y < -background.h / 2 || pos.x < -background.w / 2 || pos.x > background.w / 2) {
+					this.parr.splice(this.parr.indexOf(this), 1);
 				}
-				if(this.touches(player)){
-					this.parr.splice(this.parr.indexOf(this),1);
+				if (this.touches(player)) {
+					this.parr.splice(this.parr.indexOf(this), 1);
 					player.health--;
 				}
-				if(this.isTouchingLines()){
-					this.parr.splice(this.parr.indexOf(this),1);
+				if (this.isTouchingLines()) {
+					this.parr.splice(this.parr.indexOf(this), 1);
 				}
 			}
 		}
-        class TurnBullet extends Sprite {
-            constructor(x, y, d, path = 'bullet.png') {
-                super(path);
-                this.position = new Vector(x, y);
-                this.direction = d;
-                this.speed = 3.5;
-                this.parr = bullets;
+		class TurnBullet extends Sprite {
+			constructor(x, y, d, path = 'bullet.png') {
+				super(path);
+				this.position = new Vector(x, y);
+				this.direction = d;
+				this.speed = 3.5;
+				this.parr = bullets;
 				this.rot = 1;
 				setTimeout(e => {
 					let ix = this.parr.indexOf(this)
 					if (ix != -1) {
 						this.parr.splice(ix, 1);
-                    }
-                },10*1000); 
-            }
-            fly() {
-                let pos = this.pos;
-                pos.x += this.speed * Math.cos(this.dir * Math.PI / 180);
-                pos.y += this.speed * Math.sin(this.dir * Math.PI / 180);
-                this.direction = this.dir + this.rot;
-                this.position = pos;
-                if (pos.y > background.h / 2 || pos.y < -background.h / 2 || pos.x < -background.w / 2 || pos.x > background.w / 2) {
-                    this.parr.splice(this.parr.indexOf(this), 1);
-                }
-                if (this.touches(player)) {
-                    this.parr.splice(this.parr.indexOf(this), 1);
-                    player.health--;
-                }
-                if (this.isTouchingLines()) {
-                    this.parr.splice(this.parr.indexOf(this), 1);
-                }
-            }
-        }
+					}
+				}, 10 * 1000);
+			}
+			fly() {
+				let pos = this.pos;
+				pos.x += this.speed * Math.cos(this.dir * Math.PI / 180);
+				pos.y += this.speed * Math.sin(this.dir * Math.PI / 180);
+				this.direction = this.dir + this.rot;
+				this.position = pos;
+				if (pos.y > background.h / 2 || pos.y < -background.h / 2 || pos.x < -background.w / 2 || pos.x > background.w / 2) {
+					this.parr.splice(this.parr.indexOf(this), 1);
+				}
+				if (this.touches(player)) {
+					this.parr.splice(this.parr.indexOf(this), 1);
+					player.health--;
+				}
+				if (this.isTouchingLines()) {
+					this.parr.splice(this.parr.indexOf(this), 1);
+				}
+			}
+		}
 
 
-		function setupTools(){
+		function setupTools() {
 			show(obj('#edit'));
-			for(let sprite of imgs){
+			for (let sprite of imgs) {
 				let i = new Image;
 				i.src = sprite.path;
 				i.width = 50;
 				obj('#edit').appendChild(i);
 				sprite.el = i;
-				i.on('click',e=>{
-					if(sel_sprite) sel_sprite.el.classList.remove('selected');
+				i.on('click', e => {
+					if (sel_sprite) sel_sprite.el.classList.remove('selected');
 					sel_sprite = sprite;
 					edit_sprite = new Sprite(sprite.path);
 					i.classList.add('selected');
@@ -208,135 +216,135 @@
 			}
 		}
 
-		Sprite.prototype.healthBar = new Bar(0,0,50,10);
-		Sprite.prototype.showHealth = function(){
-			if(this.visible){
+		Sprite.prototype.healthBar = new Bar(0, 0, 50, 10);
+		Sprite.prototype.showHealth = function () {
+			if (this.visible) {
 				this.healthBar.pert = this.health / this.maxHealth;
-				this.healthBar.draw(this.pos.x,this.pos.y-this.h/2-5);
+				this.healthBar.draw(this.pos.x, this.pos.y - this.h / 2 - 5);
 			}
 		}
-		Sprite.prototype.isTouchingLines = function(){
-			for(let l of lines){
-				if(this.touches(l)){
+		Sprite.prototype.isTouchingLines = function () {
+			for (let l of lines) {
+				if (this.touches(l)) {
 					return true;
 				}
 			}
 			return false;
 		}
-		Sprite.prototype.isTouchingBlines = function(){
-			for(let bl of blines){
-				if(this.touches(bl)){
+		Sprite.prototype.isTouchingBlines = function () {
+			for (let bl of blines) {
+				if (this.touches(bl)) {
 					return true;
 				}
 			}
 			return this.isTouchingLines();
 		}
 
-		function spawnSprites(sprts,EDITOR=false){
+		function spawnSprites(sprts, EDITOR = false) {
 			enemies = [];
 			sprites = [];
 			structures = [];
 			bullets = [];
 			my_bullets = [];
-			for(let tm of wait_spawns){clearTimeout(tm)}
+			for (let tm of wait_spawns) { clearTimeout(tm) }
 			wait_spawns = [];
-			for(let sprite of sprts){
+			for (let sprite of sprts) {
 				let w = +sprite.w;
-				let tm = setTimeout(()=>{
+				let tm = setTimeout(() => {
 					let ns = eval(`new ${classes[sprite.i]}`);
-					ns.position = new Vector(sprite.x,sprite.y);
-					if(sprite.spec){
+					ns.position = new Vector(sprite.x, sprite.y);
+					if (sprite.spec) {
 						ns.loadSpecCode(sprite.spec);
 					}
-					if(sprite.d){
+					if (sprite.d) {
 						ns.direction = sprite.d;
 					}
-				},w*1000);
+				}, w * 1000);
 				wait_spawns.push(tm);
 			}
 		}
 
-		function EDITOR_EVENTS(){
-			document.on('wheel',e=>{
-				if(edit_sprite){
+		function EDITOR_EVENTS() {
+			document.on('wheel', e => {
+				if (edit_sprite) {
 					edit_sprite.direction = edit_sprite.dir + 90;
 				}
 			});
 		}
-		function EDITOR_CONTROLS(){
-			if(mouse.right){
+		function EDITOR_CONTROLS() {
+			if (mouse.right) {
 				edit_sprite = null;
-				if(sel_sprite) sel_sprite.el.classList.remove('selected');
+				if (sel_sprite) sel_sprite.el.classList.remove('selected');
 				sel_sprite = null;
 			}
-			if(sel_sprite && mouse.down){
+			if (sel_sprite && mouse.down) {
 				let ne = new Sprite(sel_sprite.path);
 				ne.direction = edit_sprite.dir;
-				ne.position = new Vector(mouse.pos.x-canvas.width/2+player.pos.x,mouse.pos.y-canvas.height/2+player.pos.y);
+				ne.position = new Vector(mouse.pos.x - canvas.width / 2 + player.pos.x, mouse.pos.y - canvas.height / 2 + player.pos.y);
 				sprites.push(ne);
 				mouse.down = false;
 				var spec = '';
 				var w = 0;
-				if(obj('#time_delay').checked){
+				if (obj('#time_delay').checked) {
 					w = prompt('Enter delay (in seconds) before this item spawns');
 				}
-				var result = {i:sel_sprite.ix,x:ne.pos.x,y:ne.pos.y,w,d:edit_sprite.dir};
-				if(sel_sprite.p == 1){
+				var result = { i: sel_sprite.ix, x: ne.pos.x, y: ne.pos.y, w, d: edit_sprite.dir };
+				if (sel_sprite.p == 1) {
 					let a = prompt('Is Active (1/0)');
 					let b = prompt('Where does this door lead to (enter level name)')
-					if(!a) a='0';
-					if(!b) b='level0';
-					result.spec = a+','+b;
+					if (!a) a = '0';
+					if (!b) b = 'level0';
+					result.spec = a + ',' + b;
 				}
-				if(sel_sprite.p == 2){
+				if (sel_sprite.p == 2) {
 					let t = prompt('Enter treasure');
-					if(t){
+					if (t) {
 						result.spec = t;
 					}
 				}
-				if(sel_sprite.p == 3){
+				if (sel_sprite.p == 3) {
 					let t = prompt('The sign says:')
-					if(t){
+					if (t) {
 						result.spec = t;
 					}
 				}
 				level_data.spts.push(result);
 				editor_actions.push('sprite');
 			}
-			if(mouse.down){
-				if(DRAW_MODE==1){
-					if(!o_pos){
-						o_pos = new Vector(mouse.pos.x-canvas.width/2+player.pos.x,mouse.pos.y-canvas.height/2+player.pos.y);
+			if (mouse.down) {
+				if (DRAW_MODE == 1) {
+					if (!o_pos) {
+						o_pos = new Vector(mouse.pos.x - canvas.width / 2 + player.pos.x, mouse.pos.y - canvas.height / 2 + player.pos.y);
 					} else {
 						ctx.beginPath();
-						ctx.strokeStyle = line_type=='n'?'black':'blue';
-						ctx.moveTo(o_pos.x,o_pos.y);
-						ctx.lineTo(mouse.pos.x-canvas.width/2+player.pos.x,mouse.pos.y-canvas.height/2+player.pos.y);
+						ctx.strokeStyle = line_type == 'n' ? 'black' : 'blue';
+						ctx.moveTo(o_pos.x, o_pos.y);
+						ctx.lineTo(mouse.pos.x - canvas.width / 2 + player.pos.x, mouse.pos.y - canvas.height / 2 + player.pos.y);
 						ctx.stroke();
 					}
 				}
 			}
-			if(!mouse.down){
-				if(DRAW_MODE == 1){
-					if(o_pos){
-						if(line_type == 'n'){
-							lines.push(new Line(o_pos.x,o_pos.y,mouse.pos.x-canvas.width/2+player.pos.x,mouse.pos.y-canvas.height/2+player.pos.y));
+			if (!mouse.down) {
+				if (DRAW_MODE == 1) {
+					if (o_pos) {
+						if (line_type == 'n') {
+							lines.push(new Line(o_pos.x, o_pos.y, mouse.pos.x - canvas.width / 2 + player.pos.x, mouse.pos.y - canvas.height / 2 + player.pos.y));
 							editor_actions.push('line');
-						} else if(line_type == 'b'){
-							blines.push(new Line(o_pos.x,o_pos.y,mouse.pos.x-canvas.width/2+player.pos.x,mouse.pos.y-canvas.height/2+player.pos.y));
+						} else if (line_type == 'b') {
+							blines.push(new Line(o_pos.x, o_pos.y, mouse.pos.x - canvas.width / 2 + player.pos.x, mouse.pos.y - canvas.height / 2 + player.pos.y));
 							editor_actions.push('bline');
 						}
 						o_pos = null;
 					}
 				}
 			}
-			obj('#set_map').on('click',e=>{
+			obj('#set_map').on('click', e => {
 				keys.keys['m'] = true;
 			});
-			if(keys.down('m')){
+			if (keys.down('m')) {
 				keys.keys['m'] = false;
 				let nm = prompt('Enter map Name');
-				if(nm){
+				if (nm) {
 					loadMap(nm);
 					level_data.map = nm;
 					sprites = [];
@@ -347,147 +355,147 @@
 					editor_actions = [];
 				}
 			}
-			obj('#spawn_point').on('click',e=>{
+			obj('#spawn_point').on('click', e => {
 				level_data.sx = player.pos.x;
 				level_data.sy = player.pos.y;
 			});
-			obj('#save').on('click',e=>{
+			obj('#save').on('click', e => {
 				keys.keys['q'] = true;
 			});
-			if(keys.down('q')){
+			if (keys.down('q')) {
 				dataExtraction();
 				keys.keys['q'] = false;
-				download(`${level_data.map}.json`,JSON.stringify(level_data));
+				download(`${level_data.map}.json`, JSON.stringify(level_data));
 			}
-			obj('#draw_line').on('click',e=>{
-				if(sel_sprite) sel_sprite.el.classList.remove('selected');
+			obj('#draw_line').on('click', e => {
+				if (sel_sprite) sel_sprite.el.classList.remove('selected');
 				line_type = 'n';
 				sel_sprite = null;
 				DRAW_MODE = 1;
 			});
-			obj('#draw_bline').on('click',e=>{
-				if(sel_sprite) sel_sprite.el.classList.remove('selected');
+			obj('#draw_bline').on('click', e => {
+				if (sel_sprite) sel_sprite.el.classList.remove('selected');
 				line_type = 'b';
 				sel_sprite = null;
 				DRAW_MODE = 1;
 			});
-			obj('#hitbox_tog').on('click',e=>{
+			obj('#hitbox_tog').on('click', e => {
 				keys.keys['h'] = true;
 			});
-			if(keys.down('h')){
+			if (keys.down('h')) {
 				keys.keys['h'] = false;
 				Hitbox.show = !Hitbox.show;
 			}
-			if(keys.down('control') && keys.down('z')){
+			if (keys.down('control') && keys.down('z')) {
 				keys.keys['z'] = false;
 				let a = editor_actions.pop();
-				if(a == 'line'){
+				if (a == 'line') {
 					lines.pop();
-				} else if (a == 'sprite'){
+				} else if (a == 'sprite') {
 					sprites.pop();
 					level_data.spts.pop();
-				} else if (a == 'bline'){
+				} else if (a == 'bline') {
 					blines.pop();
 				}
 			}
 		}
 
-		function dataExtraction(){
-			if(!level_data.lines) level_data.lines = [];
-			for(let l of lines){
+		function dataExtraction() {
+			if (!level_data.lines) level_data.lines = [];
+			for (let l of lines) {
 				let p1 = l.getPosA();
 				let p2 = l.getPosB();
-				level_data.lines.push({x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y});
+				level_data.lines.push({ x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y });
 			}
-			for(let bl of blines){
+			for (let bl of blines) {
 				let p1 = bl.getPosA();
 				let p2 = bl.getPosB();
-				level_data.lines.push({x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,t:'bl'});
+				level_data.lines.push({ x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, t: 'bl' });
 			}
 		}
 
-		function inputHandle(){
+		function inputHandle() {
 			let speed = 4;
 			let pos = player.pos.clone();
-			if(keys.down('w')){
+			if (keys.down('w')) {
 				pos.y -= speed;
 			}
-			if(keys.down('s')){
+			if (keys.down('s')) {
 				pos.y += speed;
 			}
-			if(keys.down('a')){
+			if (keys.down('a')) {
 				pos.x -= speed;
-				if(player.health > 0) player.transformX = -1;
+				if (player.health > 0) player.transformX = -1;
 			}
-			if(keys.down('d')){
+			if (keys.down('d')) {
 				pos.x += speed;
-				if(player.health > 0) player.transformX = 1;
+				if (player.health > 0) player.transformX = 1;
 			}
-			if(keys.down('w') || keys.down('a') || keys.down('s') || keys.down('d')){
-				if(player.health > 0) player.animation.play('walk');
+			if (keys.down('w') || keys.down('a') || keys.down('s') || keys.down('d')) {
+				if (player.health > 0) player.animation.play('walk');
 			} else {
 				player.animation.stop();
 			}
-			if(keys.down('e')){
+			if (keys.down('e')) {
 				keys.keys['e'] = false;
 				nWeapon();
 			}
 
-			pos.x = Math.max(Math.min(pos.x,background.w/2),-background.w/2);
-			pos.y = Math.max(Math.min(pos.y,background.h/2),-background.h/2);
+			pos.x = Math.max(Math.min(pos.x, background.w / 2), -background.w / 2);
+			pos.y = Math.max(Math.min(pos.y, background.h / 2), -background.h / 2);
 			let op = player.pos.clone();
 
-			player.position = new Vector(pos.x,op.y);
-			if(player.isTouchingBlines()) pos.x = op.x;
+			player.position = new Vector(pos.x, op.y);
+			if (player.isTouchingBlines()) pos.x = op.x;
 
 
-			player.position = new Vector(op.x,pos.y);
-			if(player.isTouchingBlines()) pos.y = op.y;
+			player.position = new Vector(op.x, pos.y);
+			if (player.isTouchingBlines()) pos.y = op.y;
 
-			if(player.health > 0){
+			if (player.health > 0) {
 				player.position = pos;
-				weapon.direction = Vector.getDir(canvas.width/2-mouse.pos.x,canvas.height/2-mouse.pos.y);
-				weapon.position = Vector.getPointIn(weapon.dir * Math.PI / 180,weapon_dist,pos.x,pos.y);
+				weapon.direction = Vector.getDir(canvas.width / 2 - mouse.pos.x, canvas.height / 2 - mouse.pos.y);
+				weapon.position = Vector.getPointIn(weapon.dir * Math.PI / 180, weapon_dist, pos.x, pos.y);
 			} else {
 				player.position = op;
 			}
-			if(EDITOR){
+			if (EDITOR) {
 				EDITOR_CONTROLS();
 			}
 		}
 
-		function useItem(item){
-			if(item.name=='hp'){
+		function useItem(item) {
+			if (item.name == 'hp') {
 				player.health = player.maxHealth;
 			}
 		}
 
-		(function(global){
+		(function (global) {
 			const Inventory = {};
 			global.Inventory = Inventory;
 			var INVENTORY = [];
 			var random_rewards = ['hp'];
 			var inv_max = 6;
-			var MONEY = {c:0,rg:0,gg:0,og:0,bg:0}
+			var MONEY = { c: 0, rg: 0, gg: 0, og: 0, bg: 0 }
 			var itemframe = new Image;
 			itemframe.src = 'gui/itemframe.png';
-			var items = [{name:'hp',path:'potion/0.png'}];
+			var items = [{ name: 'hp', path: 'potion/0.png' }];
 
-			var money_paths = ['levelitems/coin.png','levelitems/gems/0.png','levelitems/gems/1.png','levelitems/gems/2.png','levelitems/gems/3.png']
+			var money_paths = ['levelitems/coin.png', 'levelitems/gems/0.png', 'levelitems/gems/1.png', 'levelitems/gems/2.png', 'levelitems/gems/3.png']
 			var money_imgs = [];
 
-			for(let mp of money_paths){
+			for (let mp of money_paths) {
 				let i = new Image;
 				i.src = mp;
 				money_imgs.push(i);
 			}
 
-			function addItem(item){
-				if(item == 'random'){
-					item = random_rewards[random(0,random_rewards.length-1)];
+			function addItem(item) {
+				if (item == 'random') {
+					item = random_rewards[random(0, random_rewards.length - 1)];
 				}
-				let it_obj = items.filter(e=>(e.name==item))[0];
-				if(INVENTORY.length < inv_max){
+				let it_obj = items.filter(e => (e.name == item))[0];
+				if (INVENTORY.length < inv_max) {
 					INVENTORY.push(it_obj);
 					return true;
 				} else {
@@ -495,39 +503,39 @@
 				}
 			}
 
-			function draw(){
+			function draw() {
 				drawMoney();
-				for(let i=0;i<Math.max(INVENTORY.length,3);i++){
-					let x = i*(itemframe.width+5)+5;
-					let y = canvas.height-itemframe.height-5;
-					ctx.drawImage(itemframe,x,y,64,64);
-					if(INVENTORY[i]){
+				for (let i = 0; i < Math.max(INVENTORY.length, 3); i++) {
+					let x = i * (itemframe.width + 5) + 5;
+					let y = canvas.height - itemframe.height - 5;
+					ctx.drawImage(itemframe, x, y, 64, 64);
+					if (INVENTORY[i]) {
 						let it = new Image;
 						it.src = INVENTORY[i].path;
-						ctx.drawImage(it,x+itemframe.width/2-it.width/2,y+itemframe.height/2-it.height/2);
-						if(mouse.down && mouse.pos.x > x && mouse.pos.y > y && mouse.pos.x < x+64 && mouse.pos.y < y+64){
+						ctx.drawImage(it, x + itemframe.width / 2 - it.width / 2, y + itemframe.height / 2 - it.height / 2);
+						if (mouse.down && mouse.pos.x > x && mouse.pos.y > y && mouse.pos.x < x + 64 && mouse.pos.y < y + 64) {
 							useItem(INVENTORY[i]);
-							INVENTORY.splice(i,1);
+							INVENTORY.splice(i, 1);
 						}
 					}
 				}
 			}
 
-			function money(amount,type){
+			function money(amount, type) {
 				MONEY[type] += amount;
 			}
 
-			function drawMoney(){
-				var x = canvas.width-100;
+			function drawMoney() {
+				var x = canvas.width - 100;
 				var y = 5;
-				ctx.drawImage(money_imgs[0],x,y,30,30);
+				ctx.drawImage(money_imgs[0], x, y, 30, 30);
 				ctx.textAlign = 'left';
 				ctx.font = '20px gamefont';
 				ctx.fillStyle = '#ca9518';
-				ctx.fillText(MONEY.c+'',x+30,y+22);
+				ctx.fillText(MONEY.c + '', x + 30, y + 22);
 			}
 
-			function getBalance(){
+			function getBalance() {
 				return MONEY;
 			}
 
@@ -537,7 +545,7 @@
 			Inventory.getBalance = getBalance;
 		})(this); // INVENTORY
 
-		(function(global){
+		(function (global) {
 			const Dialog = {};
 			global.Dialog = Dialog;
 
@@ -546,54 +554,54 @@
 
 			var D_TEXT = '';
 
-			function display(text,pos){
+			function display(text, pos) {
 				ctx.textAlign = 'center';
 				ctx.font = '15px gamefont';
-				let split_text = getLines(text,240);
-				ctx.drawImage(textbox,pos.x-150,pos.y-110,300,70);
+				let split_text = getLines(text, 240);
+				ctx.drawImage(textbox, pos.x - 150, pos.y - 110, 300, 70);
 				ctx.fillStyle = 'white';
-				for(let i=0;i<split_text.length;i++){
-					ctx.fillText(split_text[i],pos.x,pos.y-90+(20*i));
+				for (let i = 0; i < split_text.length; i++) {
+					ctx.fillText(split_text[i], pos.x, pos.y - 90 + (20 * i));
 				}
 			}
 
-			function displayFixed(text){
+			function displayFixed(text) {
 				D_TEXT = text;
-				setTimeout(()=>{
+				setTimeout(() => {
 					D_TEXT = '';
-				},1);
+				}, 1);
 			}
 
-			function draw(){
-				if(!D_TEXT) return;
+			function draw() {
+				if (!D_TEXT) return;
 				ctx.textAlign = 'center';
 				let x = 150;
 				let y = canvas.height - 150;
 				ctx.font = '15px gamefont';
-				let split_text = getLines(D_TEXT,240);
-				ctx.drawImage(textbox,x-150,y,300,70);
+				let split_text = getLines(D_TEXT, 240);
+				ctx.drawImage(textbox, x - 150, y, 300, 70);
 				ctx.fillStyle = 'white';
-				for(let i=0;i<split_text.length;i++){
-					ctx.fillText(split_text[i],x,y+20+(20*i));
+				for (let i = 0; i < split_text.length; i++) {
+					ctx.fillText(split_text[i], x, y + 20 + (20 * i));
 				}
 			}
 
 			function getLines(text, maxWidth) {
-			    var words = text.split(" ");
-			    var lines = [];
-			    var currentLine = words[0];
-			    for (var i = 1; i < words.length; i++) {
-			        var word = words[i];
-			        var width = ctx.measureText(currentLine + " " + word).width;
-			        if (width < maxWidth) {
-			            currentLine += " " + word;
-			        } else {
-			            lines.push(currentLine);
-			            currentLine = word;
-			        }
-			    }
-			    lines.push(currentLine);
-			    return lines;
+				var words = text.split(" ");
+				var lines = [];
+				var currentLine = words[0];
+				for (var i = 1; i < words.length; i++) {
+					var word = words[i];
+					var width = ctx.measureText(currentLine + " " + word).width;
+					if (width < maxWidth) {
+						currentLine += " " + word;
+					} else {
+						lines.push(currentLine);
+						currentLine = word;
+					}
+				}
+				lines.push(currentLine);
+				return lines;
 			}
 
 			Dialog.draw = draw;
@@ -602,15 +610,15 @@
 
 		})(this); // DIALOG
 
-		function useSpear(){
+		function useSpear() {
 			weapon = new Sprite('weapons/spear/0.png');
 			weapon.addAnimation('weapons/spear/stab.anims');
-			weapon.scale = new Vector(1,.3);
+			weapon.scale = new Vector(1, .3);
 			weapon.damage = 1;
 			weapon_action = 'stab';
 			weapon_dist = 25;
 		}
-		function useMace(){
+		function useMace() {
 			weapon = new Sprite('weapons/mace/0.png');
 			weapon.addAnimation('weapons/mace/mace.anims');
 			weapon_action = 'swing';
@@ -618,7 +626,7 @@
 			weapon_dist = 20;
 			weapon.transformX = -1;
 		}
-		function useLongSword(){
+		function useLongSword() {
 			weapon = new Sprite('weapons/longsword/0.png');
 			weapon.addAnimation('weapons/longsword/longsword.anims');
 			weapon_action = 'swing';
@@ -626,21 +634,21 @@
 			weapon_dist = 40;
 			weapon.transformX = -1;
 		}
-		function useAxe(){
+		function useAxe() {
 			weapon = new Sprite('weapons/axe/0.png');
 			weapon.addAnimation('weapons/axe/axe.anims');
 			weapon_action = 'swing';
 			weapon.damage = 5;
 			weapon_dist = 25;
 		}
-		function useKnives(){
+		function useKnives() {
 			weapon = new Sprite('weapons/knives/0.png');
 			weapon.addAnimation('weapons/knives/knife.anims');
 			weapon_action = 'stab';
 			weapon.damage = 3;
 			weapon_dist = 15;
 		}
-		function useSword(){
+		function useSword() {
 			weapon = new Sprite('weapons/sword/0.png');
 			weapon.addAnimation('weapons/sword/sword.anims');
 			weapon_action = 'swing';
@@ -648,7 +656,7 @@
 			weapon_dist = 20;
 			weapon.transformX = -1;
 		}
-		function useCrossbow(){
+		function useCrossbow() {
 			weapon = new Sprite('weapons/crossbow/0.png');
 			weapon.addAnimation('weapons/crossbow/crossbow.anims');
 			weapon.damage = 3;
@@ -656,7 +664,7 @@
 			weapon.type = 'nod';
 			weapon.transformX = -1;
 		}
-		function useOmegaSword(){
+		function useOmegaSword() {
 			weapon = new Sprite('weapons/yaldabaoth/0.png');
 			weapon.addAnimation('weapons/yaldabaoth/yaldabaoth.anims');
 			weapon.damage = 9999;
@@ -665,28 +673,28 @@
 		}
 
 
-		function attack(){
-			try{
-				if(weapon.type == 'nod'){
-					weapon.animation.play('load').then(d=>{
-						let arrow = new Bullet(weapons.pos.x,weapon.pos.y,weapon.dir,'weapons/arrow.png');
+		function attack() {
+			try {
+				if (weapon.type == 'nod') {
+					weapon.animation.play('load').then(d => {
+						let arrow = new Bullet(weapons.pos.x, weapon.pos.y, weapon.dir, 'weapons/arrow.png');
 						arrow.parr = my_bullets;
 						weapon.animation.play('fire');
 					});
 				} else {
-					weapon.animation.play(weapon_action).then(d=>{
-						if(!d) return;
-						for(let e of enemies){
-							if(weapon.touches(e)){
-								if(e.visible) e.health -= weapon.damage;
-								if(e.health <= 0){
-									enemies.splice(enemies.indexOf(e),1);
-									if(e.drop) e.drop();
+					weapon.animation.play(weapon_action).then(d => {
+						if (!d) return;
+						for (let e of enemies) {
+							if (weapon.touches(e)) {
+								if (e.visible) e.health -= weapon.damage;
+								if (e.health <= 0) {
+									enemies.splice(enemies.indexOf(e), 1);
+									if (e.drop) e.drop();
 									let poof = new Sprite('poof/0.png');
-									poof.position = new Vector(e.pos.x,e.pos.y);
-									poof.addAnimation('poof/poof.anims').then(e=>{
-										poof.animation.play('poof').then(e=>{
-											sprites.splice(sprites.indexOf(poof),1);
+									poof.position = new Vector(e.pos.x, e.pos.y);
+									poof.addAnimation('poof/poof.anims').then(e => {
+										poof.animation.play('poof').then(e => {
+											sprites.splice(sprites.indexOf(poof), 1);
 										});
 									});
 									sprites.push(poof);
@@ -695,19 +703,19 @@
 						}
 					});
 				}
-			} catch(e){
+			} catch (e) {
 				console.log('Animation didn\'t load fast enough');
-			} 
+			}
 		}
 
-		function nWeapon(){
-			if(player.health >= 0){
-				weapon_ix = (weapon_ix+1) % equips.length;
+		function nWeapon() {
+			if (player.health >= 0) {
+				weapon_ix = (weapon_ix + 1) % equips.length;
 				equips[weapon_ix]();
 			}
 		}
 
-		async function cutscene(video){
+		async function cutscene(video) {
 			return new Promise((resolve, reject) => {
 				const videoElem = document.createElement('video');
 				videoElem.src = `cutscenes/${video}`;
@@ -724,8 +732,10 @@
 						if (videoElem.paused || videoElem.ended) return;
 						ctx.clearRect(0, 0, canvas.width, canvas.height);
 						ctx.drawImage(videoElem, 0, 0, canvas.width, canvas.height);
+						ctx.font = '18px gamefont';
+						ctx.fillText('Click Z to skip Cutscene',canvas.width/2, canvas.height-20);
 
-						if(keys.down('z')){
+						if (keys.down('z')) {
 							resolve();
 							videoElem.pause();
 							document.body.removeChild(videoElem);
@@ -737,6 +747,7 @@
 				};
 
 				videoElem.onended = () => {
+					videoElem.pause();
 					document.body.removeChild(videoElem);
 					resolve();
 				};
@@ -748,96 +759,101 @@
 			});
 		}
 
-		async function start(){
-			if(!started){
+		async function start() {
+			if (!started) {
 				let lv_name = location.href.split('level=')[1];
-				if(EDITOR) EDITOR_EVENTS();
+				if (EDITOR) EDITOR_EVENTS();
 				player.health = player.maxHealth;
-				if(!EDITOR) canvas.requestFullscreen();
-				if(!EDITOR) await cutscene('load1.mp4');
+				if (!EDITOR) canvas.requestFullscreen();
+				if (!EDITOR) await cutscene('load1.mp4');
+				Music.loadSong();
 				loadLevel(lv_name);
-				if(EDITOR){
+				if (EDITOR) {
 					setupTools();
 				}
 
 			}
-			if(!FULLSCREEN && !EDITOR) canvas.requestFullscreen();
+			if (!FULLSCREEN && !EDITOR) canvas.requestFullscreen();
 		}
 
-		function checkLoadMusic(level_name){
-			if(level_name == 'sandroomspawn'){
-				audio.play('sfx/desert.m4a',true,.3)
+		async function checkLoadMusic(level_name) {
+			if (level_name == 'sandroomspawn') {
+				audio.play('sfx/desert.m4a', true, .3)
+			}
+			if (level_name == 'level0') {
+				audio.stopAll();
+				// Music.loadSong('7rIovIsXE6kMn629b7kDig').then(song => { song.play() });
 			}
 		}
 
-		async function loadLevel(level_name='sandroomspawn',v){
+		async function loadLevel(level_name = 'sandroomspawn', v) {
 			stopGame();
 			let req = await fetch(`levels/${level_name}.json`);
 			level_data = await req.json();
 			await loadMap(level_data.map);
 			checkLoadMusic(level_name);
-			spawnSprites(level_data.spts,EDITOR);
+			spawnSprites(level_data.spts, EDITOR);
 			loadLines(level_data.lines);
 			started = true;
 			loop();
-			if(v){
-				player.position = v.mult(background.w/2);
+			if (v) {
+				player.position = v.mult(background.w / 2);
 			} else {
-				player.position = new Vector(level_data.sx,level_data.sy);
+				player.position = new Vector(level_data.sx, level_data.sy);
 			}
 			// if(!EDITOR && !FULLSCREEN) canvas.requestFullscreen();
 		}
 
-		function stopGame(){
+		function stopGame() {
 			started = false;
-			if(typeof GAME == 'number') clearTimeout(GAME);
+			if (typeof GAME == 'number') clearTimeout(GAME);
 		}
 
-		function loop(){
-			ctx.clearRect(-2,-2,canvas.width+2,canvas.height+2);
-			GAME = setTimeout(loop,1000/60);
+		function loop() {
+			ctx.clearRect(-2, -2, canvas.width + 2, canvas.height + 2);
+			GAME = setTimeout(loop, 1000 / 60);
 			ctx.save();
-			ctx.translate(-player.pos.x+canvas.width/2,-player.pos.y+canvas.height/2);
+			ctx.translate(-player.pos.x + canvas.width / 2, -player.pos.y + canvas.height / 2);
 			background.draw();
-			for(let s of structures) s.draw();
+			for (let s of structures) s.draw();
 			inputHandle();
 			player.draw();
 			weapon.draw();
 			player.showHealth();
-			if(player.health <= 0){
+			if (player.health <= 0) {
 				player.health = 0;
 				player.direction = 90;
 			}
-			for(let s of sprites) s.draw();
-			if(!EDITOR){
-				for(let b of bullets){
+			for (let s of sprites) s.draw();
+			if (!EDITOR) {
+				for (let b of bullets) {
 					b.fly();
 					b.draw();
 				}
 			}
-			for(let e of enemies){
-				if(!EDITOR && player.health > 0){
+			for (let e of enemies) {
+				if (!EDITOR && player.health > 0) {
 					e.attack();
 					e.showHealth();
 				}
 				e.draw();
 			}
-			if(mouse.down && !EDITOR && player.health > 0){
+			if (mouse.down && !EDITOR && player.health > 0) {
 				attack();
 			}
-			if(EDITOR || Hitbox.show){
-				for(let l of lines){
+			if (EDITOR || Hitbox.show) {
+				for (let l of lines) {
 					l.draw();
 				}
-				for(let bl of blines){
+				for (let bl of blines) {
 					bl.draw('cyan');
 				}
 			}
 			ctx.restore();
 			Inventory.draw();
 			Dialog.draw();
-			if(EDITOR && edit_sprite){ 
-				edit_sprite.position = new Vector(mouse.pos.x,mouse.pos.y);
+			if (EDITOR && edit_sprite) {
+				edit_sprite.position = new Vector(mouse.pos.x, mouse.pos.y);
 				ctx.globalAlpha = .5;
 				edit_sprite.draw();
 				ctx.globalAlpha = 1;
@@ -846,4 +862,5 @@
 	</script>
 	<script src="music.js"></script>
 </body>
+
 </html>

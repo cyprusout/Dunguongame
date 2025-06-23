@@ -26,7 +26,6 @@
 
 */
 
-
 (async function (global) {
   let Music = {};
   global.Music = Music;
@@ -38,8 +37,7 @@
   });
 
   Music.songs = {};
-  let element = document.createElement("div");
-  document.body.appendChild(element);
+  let element = document.querySelector("music");
   let activeSong;
 
   Music.loadSong = async function (SONG_ID = "46MX86XQqYCZRvwPpeq4Gi") {
@@ -119,7 +117,7 @@
       .then((data) => ({
         name: data.name,
         artist: data.artists.map((a) => a.name).join(", "),
-        thumbnail: data.album.images[0]?.url
+        thumbnail: data.album.images[0]?.url,
       }));
   };
 })(this);
