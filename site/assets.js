@@ -48,6 +48,7 @@ var imgs = [
 	{ix:46,name:'Demon',path:'enemies/Demon.png'},
 	{ix:47,name:'Villager',path:'villager/00.png'},
 	{ix:48,name:'house2',path:'levelitems/house/house2.png'},
+	{ix:49,name:'fountain',path:'levelitems/fountain/0.png'},
 ];
 
 class Tri1 extends Sprite{
@@ -865,5 +866,16 @@ class house2 extends Sprite {
 		} else {
 			this.alpha = Math.min((this.alpha + .05), 1);
 		}
+	}
+}
+
+class fountain extends Sprite {
+	constructor(x, y) {
+		super('levelitems/fountain/0.png');
+		this.position = new Vector(x, y);
+		sprites.push(this);
+		this.addAnimation('levelitems/fountain/fountain.anims').then(() => {
+			this.animation.play('idle', true);
+		});
 	}
 }
