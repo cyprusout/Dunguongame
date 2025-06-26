@@ -733,7 +733,7 @@ class house extends Sprite{
 }
 class houseflip extends Sprite{
 	constructor(x,y){
-		super('structures/houseflip.png');
+		super('structures/house.png');
 		this.position = new Vector(x,y);
 		sprites.push(this);
 		this.addMovement(this.enter);
