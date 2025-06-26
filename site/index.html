@@ -310,7 +310,7 @@
 						result.spec = t;
 					}
 				}
-				if(sel_sprite.p == 47)
+				if(sel_sprite.p == 47) {}
 				level_data.spts.push(result);
 				editor_actions.push('sprite');
 			}
@@ -408,12 +408,12 @@
 			for (let l of lines) {
 				let p1 = l.getPosA();
 				let p2 = l.getPosB();
-				level_data.lines.push({ x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y });
+				level_data.lines.push({ x1: Math.round(p1.x), y1: Math.round(p1.y), x2: Math.round(p2.x), y2: Math.round(p2.y) });
 			}
 			for (let bl of blines) {
 				let p1 = bl.getPosA();
 				let p2 = bl.getPosB();
-				level_data.lines.push({ x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, t: 'bl' });
+				level_data.lines.push({ x1: Math.round(p1.x), y1: Math.round(p1.y), x2: Math.round(p2.x), y2: Math.round(p2.y), t: 'bl' });
 			}
 		}
 

@@ -40,14 +40,14 @@ var imgs = [
     {ix:38,name:'stonewall',path:'levelitems/stonewall.png'},
     {ix:39,name:'torch',path:'levelitems/torch.png'},
     {ix:40,name:'woodbridge',path:'levelitems/woodbridge.png'},
-    {ix:41,name:'house',path:'levelitems/house/house.png'},
-    {ix:42,name:'houseflip',path:'levelitems/house/houseflip.png'},
+    {ix:41,name:'house',path:'structures/house.png'},
+    {ix:42,name:'houseflip',path:'structures/houseflip.png'},
 	{ix:43,name:'church',path:'structures/church.png'},
 	{ix:44,name:'WaterPuddle',path:'enemies/waterpuddle/0.png'},
 	{ix:45,name:'inside',path:'structures/inside.png'},
 	{ix:46,name:'Demon',path:'enemies/Demon.png'},
 	{ix:47,name:'Villager',path:'villager/00.png'},
-	{ix:48,name:'house2',path:'levelitems/house/house2.png'},
+	{ix:48,name:'house2',path:'structures/house2.png'},
 	{ix:49,name:'fountain',path:'levelitems/fountain/0.png'},
 	{ix:50,name:'castle',path:'structures/castle.png'},
 ];
@@ -716,7 +716,7 @@ class woodbridge extends Sprite{
 }
 class house extends Sprite{
 	constructor(x,y){
-		super('levelitems/house/house.png');
+		super('structures/house.png');
 		this.position = new Vector(x,y);
 		sprites.push(this);
 		this.addMovement(this.enter);
@@ -733,7 +733,7 @@ class house extends Sprite{
 }
 class houseflip extends Sprite{
 	constructor(x,y){
-		super('levelitems/house/house.png');
+		super('structures/houseflip.png');
 		this.position = new Vector(x,y);
 		sprites.push(this);
 		this.addMovement(this.enter);
@@ -854,7 +854,7 @@ class Villager extends Sprite{
 
 class house2 extends Sprite {
 	constructor(x, y) {
-		super('levelitems/house/house2.png');
+		super('structures/house2.png');
 		this.position = new Vector(x, y);
 		sprites.push(this);
 		this.addMovement(this.enter);
