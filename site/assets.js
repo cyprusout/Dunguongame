@@ -49,6 +49,7 @@ var imgs = [
 	{ix:47,name:'Villager',path:'villager/00.png'},
 	{ix:48,name:'house2',path:'levelitems/house/house2.png'},
 	{ix:49,name:'fountain',path:'levelitems/fountain/0.png'},
+	{ix:50,name:'castle',path:'structures/castle.png'},
 ];
 
 class Tri1 extends Sprite{
@@ -877,5 +878,13 @@ class fountain extends Sprite {
 		this.addAnimation('levelitems/fountain/fountain.anims').then(() => {
 			this.animation.play('idle', true);
 		});
+	}
+}
+
+class castle extends Sprite {
+	constructor(x, y) {
+		super('structures/castle.png');
+		this.position = new Vector(x, y);
+		structures.push(this);
 	}
 }
